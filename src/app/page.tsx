@@ -31,7 +31,10 @@ export default function Home() {
       <header className="mx-auto flex max-w-6xl items-center justify-between px-4 py-5 sm:px-6">
         <Logo size="md" />
         <nav className="flex items-center gap-1 text-sm font-semibold text-muted-foreground">
-          <Link href="/dashboard" className="rounded-lg px-3 py-2 hover:text-text">
+          <Link href="/how-to-play" className="rounded-lg px-3 py-2 hover:text-text">
+            How to play
+          </Link>
+          <Link href="/dashboard" className="hidden rounded-lg px-3 py-2 hover:text-text sm:inline">
             My games
           </Link>
           <Link href="/create" className="rounded-lg px-3 py-2 text-text hover:text-volt">
@@ -71,7 +74,12 @@ export default function Home() {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
-        <h2 className="mb-8 font-display text-4xl font-black uppercase sm:text-5xl">One round, three moves</h2>
+        <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
+          <h2 className="font-display text-4xl font-black uppercase sm:text-5xl">One round, three moves</h2>
+          <Link href="/how-to-play" className="font-display text-lg font-extrabold uppercase tracking-wide text-volt hover:underline">
+            Full guide →
+          </Link>
+        </div>
         <ol className="grid gap-4 md:grid-cols-3">
           {STEPS.map((s, i) => (
             <li key={s.title} className="panel p-6">

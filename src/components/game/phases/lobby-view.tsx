@@ -32,7 +32,15 @@ export function LobbyView({ snapshot }: { snapshot: GameSnapshot }) {
       </div>
       <PlayerGrid players={participants} meId={me?.id} />
       <p className="mt-8 text-center text-sm text-faint">
-        Tip: when the round starts you&apos;ll bid first — before you know the topic.
+        Tip: when the round starts you&apos;ll bid first — before you know the topic.{" "}
+        <a
+          href="/how-to-play"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-semibold text-volt underline-offset-4 hover:underline"
+        >
+          New here? How to play
+        </a>
       </p>
     </div>
   );
