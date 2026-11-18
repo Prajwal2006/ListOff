@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { Briefcase, Globe } from "lucide-react";
 import { TallyGlyph } from "@/components/brand/logo";
-import { DEVELOPER } from "@/lib/developer";
+import { DEVELOPER, IDEA_BY } from "@/lib/developer";
 
 function ExternalLink({ href, label, children }: { href: string; label: string; children: ReactNode }) {
   return (
@@ -52,11 +52,12 @@ export function DeveloperStory() {
             Everyone thinks they can name <span className="text-volt-glow">twenty fruits</span>
           </h3>
           <p className="leading-relaxed text-muted-foreground">
-            …right up until a clock starts ticking. That gap between how confident we are and what we can actually pull
-            out of our heads under pressure is hilarious, and I wanted a game built entirely around it.
+            …right up until a clock starts ticking. My friend {IDEA_BY.firstName} came up with a game built entirely
+            around that gap between how confident we are and what we can actually pull out of our heads under
+            pressure.
           </p>
           <p className="leading-relaxed text-muted-foreground">
-            So I made ListOff. You bid on yourself before you see the topic, then race twenty seconds to back it up.
+            So I built ListOff. You bid on yourself before you see the topic, then race twenty seconds to back it up.
             No accounts, no app to download: just one link, a room full of friends, and a healthy amount of trash
             talk. Every answer is checked against a hand-built list of over 30,000, so the only arguments left are
             about who bid too high.
@@ -74,6 +75,37 @@ export function DeveloperStory() {
               <Globe className="size-5" aria-hidden /> Portfolio
             </ExternalLink>
           </div>
+        </div>
+      </div>
+
+      {/* The friend behind the idea */}
+      <div className="panel mt-4 grid overflow-hidden sm:grid-cols-[minmax(0,14rem)_minmax(0,1fr)] md:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
+        <div className="relative aspect-[4/3] w-full overflow-hidden sm:aspect-auto sm:min-h-[260px]">
+          <Image
+            src={IDEA_BY.photo}
+            alt={`${IDEA_BY.name}, who came up with the idea for ListOff, smiling in a white shirt beside a marina with a palm tree`}
+            fill
+            sizes="(max-width: 640px) 100vw, 288px"
+            className="scale-[1.6] object-cover"
+            style={{ objectPosition: "48% 55%", transformOrigin: "48% 52%" }}
+          />
+          <div
+            aria-hidden
+            className="absolute inset-0 bg-gradient-to-t from-night/80 via-transparent to-transparent sm:bg-gradient-to-r sm:from-transparent sm:via-transparent sm:to-night/70"
+          />
+        </div>
+        <div className="flex flex-col justify-center gap-3 p-6 sm:p-8">
+          <p className="flex items-center gap-2 text-sm font-bold uppercase tracking-[0.2em] text-amber">
+            <span aria-hidden>💡</span> The idea
+          </p>
+          <h3 className="font-display text-3xl font-black uppercase leading-[0.9] sm:text-4xl">
+            Dreamed up by <span className="text-uv-glow">{IDEA_BY.name}</span>
+          </h3>
+          <p className="leading-relaxed text-muted-foreground">
+            {IDEA_BY.firstName} is my friend and the one who came up with the idea for this game: bet on yourself
+            before you know the topic, then try to back it up against the clock. I just turned it into something you
+            can play.
+          </p>
         </div>
       </div>
     </section>
