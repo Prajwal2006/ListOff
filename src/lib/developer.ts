@@ -9,5 +9,5 @@ export const DEVELOPER = {
 export const IDEA_BY = {
   name: "Aniket Patnaik",
   firstName: "Aniket",
-  photo: "/aniket-patnaik.webp",
+  photo: "/aniket-patnaik.jpg",
 };

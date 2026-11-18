@@ -79,29 +79,29 @@ export function DeveloperStory() {
       </div>
 
       {/* The friend behind the idea */}
-      <div className="panel mt-4 grid overflow-hidden sm:grid-cols-[minmax(0,14rem)_minmax(0,1fr)] md:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
-        <div className="relative aspect-[4/3] w-full overflow-hidden sm:aspect-auto sm:min-h-[260px]">
+      <div className="panel mt-4 grid overflow-hidden sm:grid-cols-[minmax(0,18rem)_minmax(0,1fr)] md:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
+        <div className="relative aspect-[4/5] w-full overflow-hidden sm:aspect-auto sm:min-h-[380px] md:min-h-[440px]">
           <Image
             src={IDEA_BY.photo}
             alt={`${IDEA_BY.name}, who came up with the idea for ListOff, smiling in a white shirt beside a marina with a palm tree`}
             fill
-            sizes="(max-width: 640px) 100vw, 288px"
-            className="scale-[1.6] object-cover"
-            style={{ objectPosition: "48% 55%", transformOrigin: "48% 52%" }}
+            sizes="(max-width: 640px) 100vw, 480px"
+            className="scale-[1.25] object-cover"
+            style={{ objectPosition: "48% 50%", transformOrigin: "48% 48%" }}
           />
           <div
             aria-hidden
             className="absolute inset-0 bg-gradient-to-t from-night/80 via-transparent to-transparent sm:bg-gradient-to-r sm:from-transparent sm:via-transparent sm:to-night/70"
           />
         </div>
-        <div className="flex flex-col justify-center gap-3 p-6 sm:p-8">
+        <div className="flex flex-col justify-center gap-4 p-6 sm:p-8 lg:p-10">
           <p className="flex items-center gap-2 text-sm font-bold uppercase tracking-[0.2em] text-amber">
             <span aria-hidden>💡</span> The idea
           </p>
-          <h3 className="font-display text-3xl font-black uppercase leading-[0.9] sm:text-4xl">
+          <h3 className="font-display text-4xl font-black uppercase leading-[0.9] sm:text-5xl">
             Dreamed up by <span className="text-uv-glow">{IDEA_BY.name}</span>
           </h3>
-          <p className="leading-relaxed text-muted-foreground">
+          <p className="text-lg leading-relaxed text-muted-foreground">
             {IDEA_BY.firstName} is my friend and the one who came up with the idea for this game: bet on yourself
             before you know the topic, then try to back it up against the clock. I just turned it into something you
             can play.
