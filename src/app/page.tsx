@@ -3,6 +3,7 @@ import { Backdrop } from "@/components/brand/backdrop";
 import { Logo } from "@/components/brand/logo";
 import { HeroDemo } from "@/components/landing/hero-demo";
 import { JoinCodeForm } from "@/components/landing/join-code-form";
+import { BuiltBy, DeveloperStory } from "@/components/landing/developer-story";
 import { LandingStats } from "@/components/landing/landing-stats";
 
 const STEPS = [
@@ -103,8 +104,11 @@ export default function Home() {
         <LandingStats />
       </section>
 
-      <footer className="border-t border-line py-8 text-center text-sm text-faint">
-        ListOff · answers checked against a curated database — no AI guessing, no arguments.
+      <DeveloperStory />
+
+      <footer className="space-y-1 border-t border-line py-8 text-center text-sm text-faint">
+        <p>ListOff · answers checked against a curated database — no AI guessing, no arguments.</p>
+        <BuiltBy />
       </footer>
     </main>
   );

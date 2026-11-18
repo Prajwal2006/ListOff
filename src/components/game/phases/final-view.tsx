@@ -5,6 +5,7 @@ import { Crown, Target, Trophy } from "lucide-react";
 import { Avatar } from "@/components/game/avatar";
 import { Confetti } from "@/components/game/confetti";
 import { PhaseLabel } from "@/components/game/game-header";
+import { BuiltBy } from "@/components/landing/developer-story";
 import { cn } from "@/lib/utils";
 import type { FinalView as FinalData } from "@/types/game";
 
@@ -151,6 +152,8 @@ export function FinalView({ final, meId, gameName }: { final: FinalData; meId?: 
           detail="largest bid cashed in one go"
         />
       </section>
+
+      <BuiltBy className="mt-10 text-center text-sm text-faint" />
     </div>
   );
 }
