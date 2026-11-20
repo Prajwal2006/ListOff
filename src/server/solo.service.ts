@@ -1,4 +1,4 @@
-import { and, asc, count, desc, eq, gt, ilike, inArray, or, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, gt, ilike, inArray, lt, or, sql } from "drizzle-orm";
 import type { Db, DbOrTx } from "@/lib/db/client";
 import { answers, playerProfiles, soloAnswers, soloRounds, universities, type SoloRound } from "@/lib/db/schema";
 import { isCountry, isRegion, regionName, type CountryCode } from "@/data/regions";
@@ -164,7 +164,7 @@ async function rankWithin(db: DbOrTx, p: ProfileRow, scope: ReturnType<typeof sc
         gt(playerProfiles.roundsPlayed, 0),
         or(
           gt(playerProfiles.totalPoints, p.totalPoints),
-          and(eq(playerProfiles.totalPoints, p.totalPoints), sql`${playerProfiles.pointsAt} < ${p.pointsAt}`),
+          and(eq(playerProfiles.totalPoints, p.totalPoints), lt(playerProfiles.pointsAt, p.pointsAt)),
         ),
       ),
     );
