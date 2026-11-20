@@ -13,12 +13,12 @@ import { Stepper } from "@/components/game/stepper";
 import { api, ApiError } from "@/lib/client/api";
 import { useCountdown } from "@/lib/realtime/use-countdown";
 import { calculatePoints, MAX_PREDICTION, MIN_PREDICTION } from "@/lib/scoring";
-import type { GameSnapshot } from "@/types/game";
+import type { GameSnapshot, PublicTopic } from "@/types/game";
 
 const DIFFICULTY = { easy: "text-volt", medium: "text-amber", hard: "text-hot" } as const;
 
 /** The topic, slammed in at the top of the bid screen. */
-function TopicCard({ topic }: { topic: NonNullable<NonNullable<GameSnapshot["round"]>["topic"]> }) {
+export function TopicCard({ topic }: { topic: PublicTopic }) {
   return (
     <div className="relative mt-4 w-full overflow-hidden rounded-3xl border border-line-strong bg-night/70 px-5 py-6">
       <motion.div

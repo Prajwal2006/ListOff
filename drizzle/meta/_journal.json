@@ -15,6 +15,13 @@
       "when": 1794530516327,
       "tag": "0001_app_meta",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795192048394,
+      "tag": "0002_solo_mode",
+      "breakpoints": true
     }
   ]
 }

@@ -80,3 +80,8 @@ export function keyVariants(normalized: string): string[] {
 export function nameKey(displayName: string): string {
   return displayName.trim().toLowerCase().replace(/\s+/g, " ");
 }
+
+/** Dedup key for university names: "IIT  Bombay" and "iit-bombay" are the same institution. */
+export function universityKey(name: string): string {
+  return compact(normalizeAnswer(name));
+}

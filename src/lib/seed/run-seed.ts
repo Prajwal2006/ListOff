@@ -1,7 +1,9 @@
 import { sql } from "drizzle-orm";
 import type { Db } from "@/lib/db/client";
-import { answerAliases, answers, categories, topics } from "@/lib/db/schema";
+import { answerAliases, answers, categories, topics, universities } from "@/lib/db/schema";
 import { allCategories } from "@/data/seed";
+import { UNIVERSITIES } from "@/data/universities";
+import { universityKey } from "@/lib/validation/normalize";
 import { prepareAll } from "./parse";
 import type { CategorySeed } from "./types";
 
@@ -124,6 +126,20 @@ export async function runSeed(
     aliasCount += part.length;
   }
   log(`aliases: ${aliasCount}`);
+
+  // Starter universities for solo leaderboards. Player-added ones are never touched.
+  if (!opts.data) {
+    for (const part of chunks(UNIVERSITIES.map((u) => ({ ...u, nameKey: universityKey(u.name) })))) {
+      await db
+        .insert(universities)
+        .values(part)
+        .onConflictDoUpdate({
+          target: [universities.country, universities.nameKey],
+          set: { name: sql`excluded.name`, stateCode: sql`excluded.state_code`, isCustom: sql`false` },
+        });
+    }
+    log(`universities: ${UNIVERSITIES.length}`);
+  }
 
   return { categories: catRows.length, topics: topicRows.length, answers: answerCount, aliases: aliasCount, warnings };
 }

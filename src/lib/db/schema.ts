@@ -273,3 +273,109 @@ export const appMeta = pgTable("app_meta", {
   value: text("value").notNull(),
   updatedAt: ts("updated_at").notNull().defaultNow(),
 });
+
+/* ───────────────────────────── Solo mode ──────────────────────────── */
+// Accounts live in Neon Auth (`neon_auth.user`, uuid ids). These tables reference that id without a
+// foreign key so local PGlite dev/tests (which have no neon_auth schema) work the same way.
+
+export const soloRoundStatusEnum = pgEnum("solo_round_status", ["PREDICTION", "ANSWERING", "COMPLETE", "ABANDONED"]);
+
+/** Universities players can represent. Seeded for India and the US; players can add missing ones. */
+export const universities = pgTable(
+  "universities",
+  {
+    id: serial("id").primaryKey(),
+    name: text("name").notNull(),
+    nameKey: text("name_key").notNull(),
+    country: text("country").notNull(), // "IN" | "US"
+    stateCode: text("state_code").notNull(),
+    isCustom: boolean("is_custom").notNull().default(false),
+    createdBy: uuid("created_by"),
+    createdAt: ts("created_at").notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("universities_country_name_key").on(t.country, t.nameKey),
+    index("universities_country_state_idx").on(t.country, t.stateCode),
+  ],
+);
+
+/** A signed-in player's solo identity and running total. One row per Neon Auth user. */
+export const playerProfiles = pgTable(
+  "player_profiles",
+  {
+    userId: uuid("user_id").primaryKey(),
+    displayName: text("display_name").notNull(),
+    country: text("country").notNull(),
+    stateCode: text("state_code").notNull(),
+    universityId: integer("university_id")
+      .notNull()
+      .references(() => universities.id),
+    totalPoints: integer("total_points").notNull().default(0),
+    roundsPlayed: integer("rounds_played").notNull().default(0),
+    bidsHit: integer("bids_hit").notNull().default(0),
+    bestRound: integer("best_round").notNull().default(0),
+    /** When the current total was reached — earlier wins ties on the leaderboard. */
+    pointsAt: ts("points_at").notNull().defaultNow(),
+    createdAt: ts("created_at").notNull().defaultNow(),
+    updatedAt: ts("updated_at").notNull().defaultNow(),
+  },
+  (t) => [
+    index("player_profiles_national_idx").on(t.country, t.totalPoints),
+    index("player_profiles_state_idx").on(t.country, t.stateCode, t.totalPoints),
+    index("player_profiles_university_idx").on(t.universityId, t.totalPoints),
+  ],
+);
+
+/** One solo round: random topic, a bid, a server-timed answering window, then exactly-once scoring. */
+export const soloRounds = pgTable(
+  "solo_rounds",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").notNull(),
+    topicId: integer("topic_id")
+      .notNull()
+      .references(() => topics.id),
+    status: soloRoundStatusEnum("status").notNull().default("PREDICTION"),
+    predictedCount: integer("predicted_count"),
+    roundDuration: integer("round_duration").notNull(),
+    createdAt: ts("created_at").notNull().defaultNow(),
+    answeringStartsAt: ts("answering_starts_at"),
+    answeringDeadline: ts("answering_deadline"),
+    validCount: integer("valid_count"),
+    points: integer("points"),
+    completedAt: ts("completed_at"),
+  },
+  (t) => [
+    index("solo_rounds_user_idx").on(t.userId, t.createdAt),
+    // At most one unfinished round per player.
+    uniqueIndex("solo_rounds_one_open_idx")
+      .on(t.userId)
+      .where(sql`status IN ('PREDICTION', 'ANSWERING')`),
+  ],
+);
+
+export const soloAnswers = pgTable(
+  "solo_answers",
+  {
+    id: serial("id").primaryKey(),
+    roundId: uuid("round_id")
+      .notNull()
+      .references(() => soloRounds.id, { onDelete: "cascade" }),
+    answerId: integer("answer_id").references(() => answers.id),
+    submittedText: text("submitted_text").notNull(),
+    normalizedText: text("normalized_text").notNull(),
+    isValid: boolean("is_valid").notNull(),
+    isDuplicate: boolean("is_duplicate").notNull().default(false),
+    submittedAt: ts("submitted_at").notNull().defaultNow(),
+  },
+  (t) => [
+    index("solo_answers_round_idx").on(t.roundId),
+    uniqueIndex("solo_answers_credit_idx")
+      .on(t.roundId, t.answerId)
+      .where(sql`is_valid AND NOT is_duplicate`),
+  ],
+);
+
+export type University = typeof universities.$inferSelect;
+export type PlayerProfile = typeof playerProfiles.$inferSelect;
+export type SoloRound = typeof soloRounds.$inferSelect;

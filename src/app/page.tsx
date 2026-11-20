@@ -34,7 +34,13 @@ export default function Home() {
           <Link href="/how-to-play" className="rounded-lg px-3 py-2 hover:text-text">
             How to play
           </Link>
-          <Link href="/dashboard" className="hidden rounded-lg px-3 py-2 hover:text-text sm:inline">
+          <Link href="/leaderboards" className="hidden rounded-lg px-3 py-2 hover:text-text sm:inline">
+            Leaderboards
+          </Link>
+          <Link href="/solo" className="rounded-lg px-3 py-2 hover:text-text">
+            Solo
+          </Link>
+          <Link href="/dashboard" className="hidden rounded-lg px-3 py-2 hover:text-text md:inline">
             My games
           </Link>
           <Link href="/create" className="rounded-lg px-3 py-2 text-text hover:text-volt">
@@ -68,6 +74,17 @@ export default function Home() {
             <span className="hidden text-sm font-semibold uppercase tracking-widest text-faint sm:block">or</span>
             <JoinCodeForm />
           </div>
+          <p className="mt-5 text-sm text-muted-foreground">
+            No crew tonight?{" "}
+            <Link href="/solo" className="font-semibold text-volt hover:underline">
+              Play solo
+            </Link>{" "}
+            and climb the{" "}
+            <Link href="/leaderboards" className="font-semibold text-cyan hover:underline">
+              university, state and national leaderboards
+            </Link>
+            .
+          </p>
         </div>
 
         <HeroDemo />

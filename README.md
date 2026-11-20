@@ -80,6 +80,11 @@ what to click — it never ships a broken app.
 ### After deploying (optional)
 
 - **Admin editor:** add an `ADMIN_SECRET` environment variable and redeploy to enable `/admin`.
+- **Solo mode + leaderboards (Neon Auth):** enable auth on your Neon branch (`neon neon-auth enable`),
+  set `NEON_AUTH_BASE_URL` (printed by that command) and `NEON_AUTH_COOKIE_SECRET` (any random string of
+  32+ characters, e.g. `openssl rand -base64 32`) in Vercel, and allow your site's origin with
+  `neon neon-auth domain add https://<your-app>.vercel.app`. Without these, party games work and `/solo` says
+  accounts aren't configured.
 - **Custom domain:** add it in Vercel; invite links and QR codes use the domain players visit.
   Set `NEXT_PUBLIC_APP_URL` only if you want links to always point at one specific domain.
 - **Preview deployments:** with Neon's Vercel integration, each preview gets its own database
@@ -110,11 +115,22 @@ local-development only.
 | `DATABASE_URL` | prod | Neon **pooled** connection string used by the app (set by the Neon integration; `POSTGRES_URL` also accepted) |
 | `DATABASE_URL_UNPOOLED` | recommended | Direct connection for migrations/seed (set by the Neon integration; `POSTGRES_URL_NON_POOLING` also accepted) |
 | `ADMIN_SECRET` | for `/admin` | Unlocks the knowledge-base editor; admin is disabled without it |
+| `NEON_AUTH_BASE_URL` | for solo mode | Neon Auth endpoint for this branch (from `neon neon-auth enable`) |
+| `NEON_AUTH_COOKIE_SECRET` | for solo mode | 32+ random characters used to sign session cookies |
 | `NEXT_PUBLIC_APP_URL` | optional | Public base URL for invite links |
 | `DB_POOL_MAX` | optional | postgres.js pool size per instance (default 5) |
 | `SKIP_DB_PREPARE` | optional | `1` skips the build-time migrate/seed step |
 
 ---
+
+## Solo mode and leaderboards
+
+Signed-in players (email + password via Neon Auth, managed Better Auth) can play solo rounds on random
+topics: see the topic, bid, then 30 seconds on the server clock. Each round is scored exactly once
+(conditional `ANSWERING → COMPLETE` update in the same transaction as the profile total) and the
+points add to the player's account. Players pick their country (India or the US), state and
+university (281 seeded, players can add missing ones), and rank on national, state and university
+leaderboards (`/leaderboards`). Identity always comes from the session cookie, never the request body.
 
 ## How it works
 

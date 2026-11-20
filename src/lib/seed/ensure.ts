@@ -3,6 +3,7 @@ import { count, eq, sql } from "drizzle-orm";
 import type { Db } from "@/lib/db/client";
 import { appMeta, topics } from "@/lib/db/schema";
 import { allCategories } from "@/data/seed";
+import { UNIVERSITIES } from "@/data/universities";
 import { prepareAll } from "./parse";
 import { runSeed, type SeedStats } from "./run-seed";
 
@@ -13,7 +14,7 @@ const KB_KEY = "knowledge_base_version";
  * any category, topic, answer — or a derived field such as a generated prompt — changes.
  */
 export function knowledgeBaseVersion(): string {
-  return createHash("sha256").update(JSON.stringify(prepareAll(allCategories))).digest("hex").slice(0, 16);
+  return createHash("sha256").update(JSON.stringify([prepareAll(allCategories), UNIVERSITIES])).digest("hex").slice(0, 16);
 }
 
 export interface EnsureResult {

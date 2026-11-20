@@ -46,7 +46,7 @@ export function invalidateTopicCandidates() {
   candidateCache = null;
 }
 
-async function topicCandidates(db: DbOrTx): Promise<TopicCandidate[]> {
+export async function topicCandidates(db: DbOrTx): Promise<TopicCandidate[]> {
   if (candidateCache && Date.now() - candidateCache.at < 60_000) return candidateCache.rows;
   const rows = await db
     .select({ id: topics.id, categoryId: topics.categoryId })

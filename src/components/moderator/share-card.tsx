@@ -47,7 +47,9 @@ export function ShareCard({ code, big = false }: { code: string; big?: boolean }
     <div className={cn("panel flex flex-col gap-5 p-5 sm:flex-row sm:items-center", big && "sm:p-7")}>
       {qr && (
         <div
-          className={cn("shrink-0 self-center rounded-2xl bg-white p-3", big ? "size-44" : "size-32")}
+          className={cn("aspect-square shrink-0 self-center rounded-3xl bg-white p-4 shadow-[0_0_60px_rgb(200_255_46/0.25)] [&>svg]:size-full",
+            big ? "w-full max-w-72 sm:size-72 md:size-80" : "w-full max-w-56 sm:size-48",
+          )}
           dangerouslySetInnerHTML={{ __html: qr }}
           aria-label="QR code for the invite link"
           role="img"
@@ -55,7 +57,7 @@ export function ShareCard({ code, big = false }: { code: string; big?: boolean }
       )}
       <div className="min-w-0 flex-1">
         <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan">Join at {url.replace(/^https?:\/\//, "").replace(/\/join\/.*/, "")}</p>
-        <p className={cn("font-mono font-bold tracking-[0.25em] text-text", big ? "text-6xl sm:text-7xl" : "text-5xl")}>{code}</p>
+        <p className={cn("font-mono font-bold tracking-[0.18em] text-text whitespace-nowrap", big ? "text-[clamp(2.75rem,6.5vw,4.5rem)]" : "text-5xl")}>{code}</p>
         <div className="mt-3 flex flex-wrap gap-2">
           <button
             onClick={copy}
