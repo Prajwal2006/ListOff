@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Backdrop } from "@/components/brand/backdrop";
 import { Logo } from "@/components/brand/logo";
 import { HeroDemo } from "@/components/landing/hero-demo";
-import { JoinCodeForm } from "@/components/landing/join-code-form";
+import { ModeCards } from "@/components/landing/mode-cards";
 import { BuiltBy, DeveloperStory } from "@/components/landing/developer-story";
 import { LandingStats } from "@/components/landing/landing-stats";
 
@@ -49,10 +49,10 @@ export default function Home() {
         </nav>
       </header>
 
-      <section className="mx-auto grid max-w-6xl items-center gap-12 px-4 pb-16 pt-6 sm:px-6 lg:grid-cols-[1.1fr_1fr] lg:pt-14">
+      <section className="mx-auto grid max-w-6xl items-center gap-12 px-4 pb-16 pt-6 sm:px-6 lg:grid-cols-[1.1fr_1fr] lg:pt-14 lg:pb-10">
         <div>
           <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-line-strong bg-night/60 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-cyan sm:text-xs sm:tracking-[0.2em]">
-            2–30 players · no sign-up
+            Party with friends · or play solo
           </p>
           <h1 className="font-display text-[clamp(3.6rem,11vw,8.5rem)] font-black uppercase leading-[0.82] tracking-tight">
             How many
@@ -64,30 +64,19 @@ export default function Home() {
             answer pays double. Fall one short and you get nothing. Overconfidence is the whole game.
           </p>
 
-          <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
-            <Link
-              href="/create"
-              className="inline-flex h-14 shrink-0 items-center justify-center whitespace-nowrap rounded-2xl bg-volt px-8 font-display text-xl font-extrabold uppercase tracking-wide text-[#0a0d00] shadow-[0_6px_0_var(--volt-deep),0_14px_40px_rgb(200_255_46/0.25)] transition active:translate-y-1 active:shadow-[0_2px_0_var(--volt-deep)]"
-            >
-              Host a game
-            </Link>
-            <span className="hidden text-sm font-semibold uppercase tracking-widest text-faint sm:block">or</span>
-            <JoinCodeForm />
-          </div>
-          <p className="mt-5 text-sm text-muted-foreground">
-            No crew tonight?{" "}
-            <Link href="/solo" className="font-semibold text-volt hover:underline">
-              Play solo
-            </Link>{" "}
-            and climb the{" "}
-            <Link href="/leaderboards" className="font-semibold text-cyan hover:underline">
-              university, state and national leaderboards
-            </Link>
-            .
-          </p>
         </div>
 
-        <HeroDemo />
+        {/* On phones the demo moves below the two ways to play. */}
+        <div className="hidden lg:block">
+          <HeroDemo />
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 pb-20 sm:px-6" aria-label="Ways to play">
+        <ModeCards />
+        <div className="mt-10 lg:hidden">
+          <HeroDemo />
+        </div>
       </section>
 
       <section className="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
