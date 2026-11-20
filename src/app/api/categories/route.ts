@@ -16,5 +16,8 @@ export const GET = route(async (_req, _ctx, db) => {
     .leftJoin(topics, eq(topics.categoryId, categories.id))
     .groupBy(categories.id)
     .orderBy(asc(categories.name));
-  return json({ categories: rows.map((r) => ({ ...r, topicCount: Number(r.topicCount) })) });
+  return json({ categories: rows
+      .map((r) => ({ ...r, topicCount: Number(r.topicCount) }))
+      // Categories whose topics are all retired can't be dealt, so they aren't offered.
+      .filter((r) => r.topicCount > 0) });
 });

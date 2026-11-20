@@ -96,7 +96,9 @@ export async function buildSnapshot(db: Db, game: Game, viewer: Viewer): Promise
         .where(eq(predictions.roundId, round.id))
     : [];
   const predictedSet = new Set(roundPreds.map((p) => p.participantId));
-  const revealed = !!round && round.status !== "PREDICTION";
+  // The topic is shown as soon as a round starts (players bid knowing the topic).
+  // Individual bids stay hidden until bidding closes.
+  const bidsLocked = !!round && round.status !== "PREDICTION";
 
   const isConnected = (p: Participant) => now - p.lastSeenAt.getTime() < CONNECTED_WINDOW_MS;
   const publicParticipants: PublicParticipant[] = roster.map((p) => ({
@@ -112,7 +114,7 @@ export async function buildSnapshot(db: Db, game: Game, viewer: Viewer): Promise
   let roundView: RoundView | null = null;
   let topic: PublicTopic | null = null;
   if (round && round.status !== "CANCELLED") {
-    topic = revealed ? await getPublicTopic(db, round.topicId) : null;
+    topic = await getPublicTopic(db, round.topicId);
     const eligible = roster.filter((p) => isConnected(p) || predictedSet.has(p.id)).length;
     roundView = {
       id: round.id,
@@ -173,7 +175,7 @@ export async function buildSnapshot(db: Db, game: Game, viewer: Viewer): Promise
   if (game.currentState === "GAME_FINISHED") final = await buildFinal(db, game, roster, scoreRows);
 
   let moderator: ModeratorView | null = null;
-  if (isMod) moderator = await buildModeratorView(db, round, roster, roundPreds, revealed);
+  if (isMod) moderator = await buildModeratorView(db, round, roster, roundPreds, bidsLocked);
 
   let nextGameCode: string | null = null;
   if (game.nextGameId) {

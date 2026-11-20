@@ -2,17 +2,21 @@
 
 **How many can you name?** A real-time multiplayer party game for 2–30 people sharing one link.
 
-Every round, players **bid blind** on how many answers they can name — *before* the topic is
-revealed. Then the topic drops for the whole room at once and everyone races a 20-second clock.
-Meet your bid and you score exactly your bid. Miss it by one and you score nothing.
+Every round, the topic appears for the whole room, then each player secretly **bids** how many
+answers they can name. Once bids lock, everyone races the clock (the length the host picked).
+Hit your bid and every answer up to it is worth 2 points, plus 1 for each extra. Miss it by one
+and you score nothing.
 
 ```
-if (validUniqueAnswers >= predictedCount) points = predictedCount
-else                                      points = 0
+if (valid >= bid) points = 2 * bid + (valid - bid)   // bid 5, name 7 → 12; name 5 → 10
+else              points = 0                         // bid 5, name 4 → 0
 ```
 
-Answers are checked against a curated PostgreSQL knowledge base — **36 categories, 304 topics,
-~32,000 answers, ~2,800 aliases**. No LLM or AI API is involved at any point.
+Answers are checked against a curated PostgreSQL knowledge base — **358 topics and ~33,500 answers**, of which 164 bounded topics (~9,300 answers) are dealt in games.
+Open-ended topics (lakes, cities, rivers, actors…) are kept in the database but retired, because
+nobody can check "any lake in the world". Spelling mistakes are autocorrected locally (edit
+distance, sound-alike keys and unique partial names), and a real answer is never "corrected" into a
+different one. No LLM or AI API is involved at any point.
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FPrajwal2006%2FListOff&project-name=listoff&repository-name=listoff&products=%5B%7B%22type%22%3A%22integration%22%2C%22protocol%22%3A%22storage%22%2C%22productSlug%22%3A%22neon%22%2C%22integrationSlug%22%3A%22neon%22%7D%5D)
 
@@ -59,10 +63,10 @@ Click **Deploy with Vercel** above. Vercel will:
 1. copy the repo into your GitHub account,
 2. ask you to add **Neon** (pick the free plan) — this sets `DATABASE_URL` and `DATABASE_URL_UNPOOLED`,
 3. build and deploy. During the build, `scripts/prepare-db.ts` applies migrations and loads all
-   304 topics (~5 s the first time, ~0.1 s on later deploys when the data hasn't changed).
+   358 topics (~5 s the first time, ~0.1 s on later deploys when the data hasn't changed).
 
 Open `https://<your-app>.vercel.app/api/health` to confirm: it should report `"ok": true` and
-304 topics.
+the topic count.
 
 ### Option B — Import an existing repo
 
@@ -126,8 +130,8 @@ LOBBY ─start─▶ PREDICTION ─all bid / deadline / host─▶ TOPIC_REVEAL 
              GAME_FINISHED ─play again─▶ new LOBBY (same players, linked)
 ```
 
-- The topic is chosen and stored when the round is created, but **never sent** to anyone (players
-  *or* host) until bids lock.
+- The topic is chosen when the round is created and shown to everyone while they bid. Bids stay
+  hidden (even from the host) until they lock.
 - Every timestamp (`prediction_deadline`, `answering_starts_at`, `answering_deadline`) is written
   by the server. Clients only *display* countdowns, aligned to server time via each poll's
   `serverNow`.
@@ -227,10 +231,10 @@ drizzle/               SQL migrations
 
 ## Tests
 
-`npm test` runs 64 tests on in-memory PGlite. Set `TEST_DATABASE_URL` to run the game-flow suite
+`npm test` runs the suite on in-memory PGlite. Set `TEST_DATABASE_URL` to run the game-flow suite
 over the production postgres.js driver against a real Postgres (e.g. a throwaway Neon branch).
 The tests cover: normalization, alias matching, duplicate detection, invalid answers,
-the exact scoring examples (bid 5/got 6 → 5, bid 7/got 6 → 0), prediction locking, state
+the exact scoring examples (bid 5/got 6 → 11, bid 5/got 5 → 10, bid 7/got 6 → 0), prediction locking, state
 transitions, timer expiry, early/late submission rejection, many players submitting at once,
-exactly-once tallying under concurrent triggers, reconnection after refresh, rematches, snapshot
-secrecy (no topic before reveal, no tokens), and seed idempotency + dataset size.
+exactly-once tallying under concurrent triggers, reconnection after refresh, rematches, autocorrect (typos, sound-alikes, partials,
+ties, known-answer guard), snapshot secrecy (no bids before lock, no tokens), and seed idempotency + dataset size.

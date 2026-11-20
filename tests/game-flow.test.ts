@@ -111,16 +111,18 @@ describe("game creation and joining", () => {
 });
 
 describe("prediction phase", () => {
-  it("hides the topic until predictions lock", async () => {
+  it("shows the topic while bidding but keeps other players' bids hidden", async () => {
     const { game, players } = await setup(["Ana", "Ben"]);
     await startGame(db, game);
     const g = await reload(game);
+    await submitPrediction(db, g, players[1].participant, 9);
     const snap = await buildSnapshot(db, g, { role: "participant", participant: players[0].participant });
     expect(g.currentState).toBe("PREDICTION");
-    expect(snap.round?.topic).toBeNull();
-    expect(JSON.stringify(snap)).not.toMatch(/Fruits|Vegetables|US cities|Colors/);
+    expect(snap.round?.topic?.name).toBeTruthy();
+    expect(snap.participants.find((p) => p.displayName === "Ben")?.hasPredicted).toBe(true);
+    expect(JSON.stringify(snap)).not.toContain('"predictedCount":9');
     const mod = await buildSnapshot(db, g, { role: "moderator" });
-    expect(mod.round?.topic).toBeNull();
+    expect(mod.round?.topic?.name).toBe(snap.round?.topic?.name);
     expect(mod.moderator?.predictions).toBeNull();
   });
 
@@ -161,7 +163,7 @@ describe("prediction phase", () => {
 });
 
 describe("answering and scoring", () => {
-  it("scores the exact examples: predict 5 with 6 valid -> 5; predict 7 with 6 valid -> 0", async () => {
+  it("scores bid 5 with 6 valid as 2×5+1 = 11, and bid 7 with 6 valid as 0", async () => {
     const { game, players } = await setup(["Ana", "Ben", "Cy"]);
     await startGame(db, game);
     let g = await reload(game);
@@ -195,7 +197,7 @@ describe("answering and scoring", () => {
 
     const snap = await buildSnapshot(db, g, { role: "participant", participant: players[0].participant });
     const byName = Object.fromEntries(snap.results!.scores.map((s) => [s.displayName, s]));
-    expect(byName.Ana).toMatchObject({ predictedCount: 5, validCount: 6, roundPoints: 5, totalScore: 5, hit: true });
+    expect(byName.Ana).toMatchObject({ predictedCount: 5, validCount: 6, roundPoints: 11, totalScore: 11, hit: true });
     expect(byName.Ben).toMatchObject({ predictedCount: 7, validCount: 6, roundPoints: 0, totalScore: 0, hit: false });
     expect(byName.Cy).toMatchObject({ predictedCount: 2, validCount: 1, roundPoints: 0 });
     expect(snap.results!.answerKey.find((a) => a.answer === "Apple")?.foundBy).toBe(3);
@@ -276,7 +278,7 @@ describe("answering and scoring", () => {
     const round = await getRound(db, g.id, 1);
     const mine = scores.filter((s) => s.roundId === round!.id);
     expect(mine).toHaveLength(8);
-    for (const s of mine) expect(s).toMatchObject({ validAnswerCount: 4, pointsAwarded: 3 });
+    for (const s of mine) expect(s).toMatchObject({ validAnswerCount: 4, pointsAwarded: 7 });
   });
 
   it("processes a round exactly once, even when triggered concurrently", async () => {
@@ -307,8 +309,8 @@ describe("answering and scoring", () => {
     const after = await reload(g);
     expect(after.currentState).toBe("ROUND_LEADERBOARD");
     const snap = await buildSnapshot(db, after, { role: "moderator" });
-    expect(snap.participants.find((p) => p.displayName === "Ana")?.totalScore).toBe(2);
-    expect(snap.participants.find((p) => p.displayName === "Ben")?.totalScore).toBe(1);
+    expect(snap.participants.find((p) => p.displayName === "Ana")?.totalScore).toBe(4);
+    expect(snap.participants.find((p) => p.displayName === "Ben")?.totalScore).toBe(2);
   });
 
   it("restores a player's prediction and answers after a refresh", async () => {

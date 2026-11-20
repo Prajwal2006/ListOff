@@ -146,12 +146,7 @@ export default function DashboardPage() {
                     )}
                   </section>
                   {token && (
-                    <SettingsPanel
-                      key={`${s.game.totalRounds}-${s.game.roundDuration}-${s.game.predictionDuration}-${(s.game.categoryIds ?? []).join(",")}`}
-                      game={s.game}
-                      token={token}
-                      onSaved={refresh}
-                    />
+                    <SettingsPanel game={s.game} token={token} onSaved={refresh} />
                   )}
                 </div>
               )}

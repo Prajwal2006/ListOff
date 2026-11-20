@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Lock } from "lucide-react";
+import { CategoryIcon } from "@/components/game/category-icon";
 import { toast } from "sonner";
 import { ArcadeButton } from "@/components/game/arcade-button";
 import { CountdownRing } from "@/components/game/countdown-ring";
@@ -11,29 +12,38 @@ import { PlayerGrid } from "@/components/game/player-grid";
 import { Stepper } from "@/components/game/stepper";
 import { api, ApiError } from "@/lib/client/api";
 import { useCountdown } from "@/lib/realtime/use-countdown";
-import { MAX_PREDICTION, MIN_PREDICTION } from "@/lib/scoring";
+import { calculatePoints, MAX_PREDICTION, MIN_PREDICTION } from "@/lib/scoring";
 import type { GameSnapshot } from "@/types/game";
 
-const GLYPHS = "ABCDEFGHJKLMNPQRSTUVWXYZ?#%&";
+const DIFFICULTY = { easy: "text-volt", medium: "text-amber", hard: "text-hot" } as const;
 
-/** The redacted topic: letters flicker but never resolve. */
-function SecretTopic() {
-  const [text, setText] = useState("??????");
-  useEffect(() => {
-    const id = setInterval(() => {
-      const len = 6 + Math.floor(Math.random() * 4);
-      setText(Array.from({ length: len }, () => GLYPHS[Math.floor(Math.random() * GLYPHS.length)]).join(""));
-    }, 110);
-    return () => clearInterval(id);
-  }, []);
+/** The topic, slammed in at the top of the bid screen. */
+function TopicCard({ topic }: { topic: NonNullable<NonNullable<GameSnapshot["round"]>["topic"]> }) {
   return (
-    <div className="relative mx-auto w-fit overflow-hidden rounded-2xl border border-line-strong bg-night/80 px-6 py-3">
-      <span className="font-mono text-2xl font-bold tracking-[0.35em] text-faint blur-[1.5px]">{text}</span>
-      <span className="absolute inset-0 grid place-items-center">
-        <span className="flex items-center gap-2 rounded-full bg-ink/80 px-3 py-1 text-xs font-bold uppercase tracking-[0.25em] text-muted-foreground">
-          <Lock className="size-3.5" /> Topic sealed
-        </span>
-      </span>
+    <div className="relative mt-4 w-full overflow-hidden rounded-3xl border border-line-strong bg-night/70 px-5 py-6">
+      <motion.div
+        aria-hidden
+        className="absolute inset-0"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: [0, 1, 0.5] }}
+        transition={{ duration: 1.2 }}
+        style={{ background: "radial-gradient(circle at 50% 50%, rgb(200 255 46 / 0.2), transparent 70%)" }}
+      />
+      <div className="relative flex items-center justify-center gap-2 text-sm font-semibold">
+        <CategoryIcon name={topic.categoryIcon} className="size-4 text-cyan" />
+        {topic.categoryName}
+        <span className={`text-xs font-bold uppercase ${DIFFICULTY[topic.difficulty]}`}>· {topic.difficulty}</span>
+      </div>
+      <p className="relative mt-3 text-xs font-bold uppercase tracking-[0.3em] text-cyan">Name as many</p>
+      <motion.h2
+        initial={{ opacity: 0, scale: 2, filter: "blur(14px)" }}
+        animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+        transition={{ type: "spring", stiffness: 150, damping: 15 }}
+        className="relative font-display text-[clamp(2.8rem,10vw,6rem)] font-black uppercase leading-[0.85] text-volt-glow"
+      >
+        {topic.name}
+      </motion.h2>
+      <p className="relative mt-2 text-sm text-muted-foreground">{topic.prompt}.</p>
     </div>
   );
 }
@@ -79,6 +89,8 @@ export function PredictionView({
         <CountdownRing msLeft={msLeft} totalMs={totalMs} size={64} />
       </div>
 
+      {round.topic && <TopicCard topic={round.topic} />}
+
       <AnimatePresence mode="wait">
         {locked === null ? (
           <motion.div
@@ -88,19 +100,15 @@ export function PredictionView({
             exit={{ opacity: 0, scale: 0.9 }}
             className="flex w-full flex-col items-center"
           >
-            <h1 className="mt-4 font-display text-[clamp(3rem,10vw,6.5rem)] font-black uppercase leading-[0.85]">
-              How many
-              <br />
-              <span className="text-uv-glow">can you name?</span>
+            <h1 className="mt-6 font-display text-4xl font-black uppercase leading-[0.9] sm:text-5xl">
+              How many <span className="text-uv-glow">can you name?</span>
             </h1>
             <div className="mt-5">
-              <SecretTopic />
-            </div>
-            <div className="mt-8">
               <Stepper value={bid} onChange={setBid} min={MIN_PREDICTION} max={MAX_PREDICTION} size="xl" label="your bid" />
             </div>
             <p className="mt-2 text-sm text-muted-foreground">
-              Hit it to score <b className="text-volt">{bid}</b>. Miss by one and it&apos;s <b className="text-hot">zero</b>.
+              Hit it for <b className="text-volt">{calculatePoints(bid, bid)}+</b> points (2 per answer, +1 for every extra).
+              Fall short and it&apos;s <b className="text-hot">zero</b>.
             </p>
             <ArcadeButton variant="uv" size="xl" className="mt-6 w-full max-w-sm" onClick={lock} loading={busy}>
               <Lock className="size-6" /> Lock in {bid}

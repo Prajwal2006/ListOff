@@ -22,7 +22,7 @@ import { isValidPrediction, MAX_PREDICTION, MIN_PREDICTION } from "@/lib/scoring
 import { MAX_ANSWER_LENGTH, normalizeAnswer } from "@/lib/validation/normalize";
 import { clock } from "@/lib/utils/clock";
 import type { AnswerSubmitResponse } from "@/types/game";
-import { loadTopicIndex } from "./answer-validation.service";
+import { loadAnswerLexicon, loadTopicIndex } from "./answer-validation.service";
 import { fail } from "./errors";
 import { bumpVersion } from "./participant.service";
 
@@ -89,7 +89,7 @@ export async function pickTopic(db: DbOrTx, game: Game): Promise<number> {
   return from[Math.floor(Math.random() * from.length)].id;
 }
 
-/** Creates the next round in the PREDICTION phase. Topic is chosen now but never sent to players. */
+/** Creates the next round in the PREDICTION phase. The topic is shown to everyone while they bid. */
 export async function startRound(db: Db, game: Game, roundNumber: number): Promise<void> {
   const topicId = await pickTopic(db, game);
   const now = clock.now();
@@ -227,7 +227,11 @@ export async function submitAnswer(
     if (n >= MAX_ANSWERS_PER_ROUND) fail("LIMIT_REACHED", `That's the limit of ${MAX_ANSWERS_PER_ROUND} answers for a round.`);
 
     const index = await loadTopicIndex(tx, round.topicId);
-    const match = index.match(text);
+    let match = index.match(text, { autocorrect: false });
+    if (match.answerId === null) {
+      const lexicon = await loadAnswerLexicon(tx);
+      match = index.match(text, { isKnownAnswer: (k) => lexicon.has(k) });
+    }
     const base = {
       roundId: round.id,
       participantId: participant.id,
@@ -289,6 +293,7 @@ export async function submitAnswer(
       canonicalAnswer: match.canonical,
       isValid: base.isValid,
       isDuplicate,
+      corrected: match.method === "typo" || match.method === "sound" || match.method === "partial",
       validCount: valid,
     };
   });

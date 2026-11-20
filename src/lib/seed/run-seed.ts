@@ -61,7 +61,7 @@ export async function runSeed(
       prompt: t.prompt,
       description: t.description,
       difficulty: t.difficulty,
-      isActive: true,
+      isActive: t.active,
     })),
   );
   const topicRows: { id: number; slug: string }[] = [];
@@ -78,6 +78,7 @@ export async function runSeed(
             prompt: sql`excluded.prompt`,
             description: sql`excluded.description`,
             difficulty: sql`excluded.difficulty`,
+            isActive: sql`excluded.is_active`,
           },
         })
         .returning({ id: topics.id, slug: topics.slug })),

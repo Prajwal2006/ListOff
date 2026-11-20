@@ -20,10 +20,14 @@ export function HostPrediction({ snapshot, offset }: { snapshot: GameSnapshot; o
     <div className="space-y-6">
       <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:justify-between sm:text-left">
         <div>
-          <PhaseLabel tone="uv">Round {round.number} · bidding</PhaseLabel>
-          <h2 className="mt-1 font-display text-5xl font-black uppercase leading-none sm:text-7xl">How many can you name?</h2>
+          <PhaseLabel tone="uv">
+            Round {round.number} · bidding{round.topic ? ` · ${round.topic.categoryName}` : ""}
+          </PhaseLabel>
+          <h2 className="mt-1 font-display text-[clamp(3rem,9vw,7rem)] font-black uppercase leading-[0.85] text-volt-glow">
+            {round.topic?.name ?? "How many can you name?"}
+          </h2>
           <p className="mt-3 flex items-center justify-center gap-2 text-muted-foreground sm:justify-start">
-            <Lock className="size-4" /> The topic is sealed until bids lock — even from you.
+            <Lock className="size-4" /> Players are bidding how many they can name. Bids stay secret until everyone locks in.
           </p>
         </div>
         <CountdownRing msLeft={msLeft} totalMs={snapshot.game.predictionDuration * 1000} size={130} label="bids" />

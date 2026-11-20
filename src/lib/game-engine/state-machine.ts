@@ -1,6 +1,6 @@
 import type { GameState } from "@/lib/db/schema";
 
-/** How long the dramatic reveal + 3-2-1 countdown lasts before answering opens. */
+/** How long the "bids are in — get ready" 3-2-1 countdown lasts before answering opens. */
 export const REVEAL_MS = 4_500;
 /** Network allowance after the answering deadline. Submissions later than this are rejected. */
 export const SUBMIT_GRACE_MS = 750;

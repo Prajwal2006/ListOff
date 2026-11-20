@@ -15,6 +15,11 @@ export interface TopicSeed {
   description?: string;
   difficulty: Difficulty;
   answers: string;
+  /**
+   * False keeps the topic in the database but never deals it in a game — used for open-ended
+   * topics (e.g. "lakes") where countless valid answers can't all be listed. Defaults to true.
+   */
+  active?: boolean;
 }
 
 export interface CategorySeed {

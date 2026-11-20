@@ -1,6 +1,6 @@
 import Link from "next/link";
 import {
-  Ban,
+  Sparkles,
   CaseSensitive,
   Clock,
   Copy,
@@ -34,7 +34,7 @@ import { BuiltBy } from "@/components/landing/developer-story";
 
 export const metadata = {
   title: "How to play",
-  description: "Learn ListOff in two minutes: bid blind, see the topic, race the clock, and bank your bid.",
+  description: "Learn ListOff in two minutes: see the topic, place your bid, race the clock, and score double.",
 };
 
 const STEPS = [
@@ -53,23 +53,23 @@ const STEPS = [
     Visual: JoinVisual,
   },
   {
-    title: "Bid blind",
+    title: "See the topic, then bid",
     tone: "text-uv-soft",
-    body: "Every round starts with a bet on yourself: how many answers do you think you can name? The catch — you don't know the topic yet. It might be Fruits. It might be Japanese prefectures. Lock in a number from 1 to 50. Once it's locked, it's locked.",
-    tip: "The topic is sealed on the server until every bid is in. Not even the host can peek.",
+    body: "Every round opens with the topic on every screen — Fruits, Pixar films, Japanese prefectures. Now bet on yourself: how many can you name? Lock in a number from 1 to 50. Once it's locked, it's locked.",
+    tip: "Bids stay secret until everyone has locked in, so nobody can copy yours.",
     Visual: BidVisual,
   },
   {
-    title: "The topic drops",
+    title: "Bids lock, clock starts",
     tone: "text-volt",
-    body: "As soon as everyone has bid (or the bid timer runs out), the topic is revealed on every screen at the same moment. A 3-2-1 countdown gives you a breath to think, and then the clock starts.",
+    body: "As soon as everyone has bid (or the bid timer runs out), bids lock on every screen at the same moment. A 3-2-1 countdown gives you a breath to think, and then the clock starts.",
     tip: "Topics never repeat within a game, and the game avoids dealing the same category twice in a row.",
     Visual: RevealVisual,
   },
   {
     title: "Race the clock",
     tone: "text-volt",
-    body: "You get 20 seconds (or whatever the host chose). Type an answer, hit Enter, type the next. Each one is checked instantly: green for accepted, amber if you already named it, red if it isn't on the list. Tally marks track your progress toward your bid.",
+    body: "You get the time the host picked when creating the room (20 seconds by default). Type an answer, hit Enter, type the next. Each one is checked instantly: green for accepted, amber if you already named it, red if it isn't on the list. Tally marks track your progress toward your bid.",
     tip: "Wrong answers cost nothing, so if you're not sure, fire it in anyway.",
     Visual: RaceVisual,
   },
@@ -87,20 +87,20 @@ const RULES = [
   { Icon: SpellCheck, title: "Common spellings count", body: "Litchi = Lychee, Grey = Gray, NYC = New York City, Aubergine = Eggplant." },
   { Icon: Layers, title: "Plurals and accents are fine", body: "Grapes counts as Grape. Sao Paulo counts as São Paulo." },
   { Icon: Copy, title: "Each answer counts once", body: "Naming the same thing twice — even with a different spelling — scores it once." },
-  { Icon: Ban, title: "No guessing at typos", body: "Misspellings aren't auto-corrected, so “Bananna” won't count. Type carefully, but fast." },
-  { Icon: ShieldCheck, title: "No AI, no arguments", body: "Every answer is checked against a hand-built list of 30,000+ answers. The list is the referee." },
+  { Icon: Sparkles, title: "Typos are autocorrected", body: "“Bananna”, “brocoli” and “Filipines” all count. Close misspellings snap to the right answer — but a different real answer (Slovenia for Slovakia) never does." },
+  { Icon: ShieldCheck, title: "No AI, no arguments", body: "Every answer is checked against a hand-built list. The list is the referee." },
 ];
 
 const TIPS = [
-  { Icon: Target, title: "Bid for the topic you fear", body: "Some topics have hundreds of answers, some barely a dozen — every one has at least 10. A modest bid survives whatever comes up." },
-  { Icon: TrendingUp, title: "Big bids for comebacks", body: "Points equal your bid, so a bold 12 can leapfrog the whole table — if you can back it up." },
+  { Icon: Target, title: "Bid for the topic you see", body: "You know the topic before you bid, so size it up. Every topic has a fixed list of at least 10 answers — no endless ones like “lakes”." },
+  { Icon: TrendingUp, title: "Big bids for comebacks", body: "Answers up to your bid pay 2 each, so a bold 12 is worth 24+ — if you can back it up." },
   { Icon: Zap, title: "Type first, think later", body: "Short, obvious answers fly. Save the clever ones for when the easy ones run out." },
-  { Icon: Gauge, title: "Watch the tally", body: "Once you've hit your bid, extra answers earn nothing. Use the spare seconds to double-check spelling." },
+  { Icon: Gauge, title: "Keep going past your bid", body: "Once you've hit your bid, every extra answer still earns 1 point. Don't stop typing." },
 ];
 
 const HOST = [
   { Icon: Users, title: "Start when ready", body: "Start the game once everyone is in the lobby. People can't join after it begins." },
-  { Icon: Eye, title: "Reveal now", body: "Someone taking forever to bid? Reveal the topic early and lock the remaining bids." },
+  { Icon: Eye, title: "Lock bids now", body: "Someone taking forever to bid? Lock the bids early and start the countdown." },
   { Icon: Clock, title: "Pace the night", body: "You choose when each next round starts, so there's always time for trash talk." },
   { Icon: Flag, title: "End early", body: "Wrap up anytime. Finished rounds keep their scores; the round in progress doesn't count." },
   { Icon: Repeat, title: "Play again", body: "One click starts a rematch with the same players and settings — everyone is moved over automatically." },
@@ -110,15 +110,15 @@ const HOST = [
 const FAQ = [
   {
     q: "What if I don't place a bid in time?",
-    a: "You can still type answers for fun, but you score zero for that round. Bids lock when the bid timer ends or the host reveals the topic.",
+    a: "You can still type answers for fun, but you score zero for that round. Bids lock when the bid timer ends or the host locks them early.",
   },
   {
     q: "Do wrong answers take points away?",
-    a: "Never. Only your bid matters: meet it and you score it, miss it and you score zero. Wrong answers and duplicates are simply ignored.",
+    a: "Never. Meet your bid and you get 2 points per answer up to it plus 1 for every extra; miss it and you score zero. Wrong answers and duplicates are simply ignored.",
   },
   {
     q: "Why didn't my answer count?",
-    a: "Either it isn't on that topic's list, it's a duplicate of something you already named, or it's misspelled. After each round you can see the full list of accepted answers.",
+    a: "Either it isn't on that topic's list, it's a duplicate of something you already named, or it's too far from any real answer for autocorrect to be sure. After each round you can see the full list of accepted answers.",
   },
   {
     q: "How many people can play?",
@@ -181,8 +181,8 @@ export default function HowToPlayPage() {
             How to <span className="text-volt-glow">play</span>
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">
-            Bet on yourself before you know the topic. Then name as many answers as you can before the clock runs out.
-            Hit your number and you bank it. Fall one short and you get nothing.
+            See the topic, bet on how many you can name, then name as many as you can before the clock runs out. Hit
+            your number and every answer pays double. Fall one short and you get nothing.
           </p>
         </Reveal>
         <Reveal delay={0.1} className="mt-8 flex flex-wrap gap-2">
@@ -244,8 +244,8 @@ export default function HowToPlayPage() {
         />
         <Reveal className="mb-6 grid gap-3 md:grid-cols-2">
           <div className="rounded-3xl border border-volt/40 bg-volt/10 p-5">
-            <p className="font-display text-3xl font-black uppercase text-volt">Meet your bid → score your bid</p>
-            <p className="mt-1 text-sm text-muted-foreground">Bid 5, name 6 fruits: 5 points. Extras earn nothing.</p>
+            <p className="font-display text-3xl font-black uppercase text-volt">Hit your bid → 2 per answer</p>
+            <p className="mt-1 text-sm text-muted-foreground">Bid 5, name 6 fruits: 5 × 2 + 1 extra = 11 points.</p>
           </div>
           <div className="rounded-3xl border border-hot/40 bg-hot/10 p-5">
             <p className="font-display text-3xl font-black uppercase text-hot">Miss by one → score zero</p>

@@ -135,7 +135,7 @@ export function JoinVisual() {
   );
 }
 
-/* 3 — Bid blind */
+/* 3 — See the topic, then bid */
 export function BidVisual() {
   const { ref, i } = useLoop(9, 650);
   const bid = [3, 4, 5, 6, 7, 7, 7, 7, 7][i];
@@ -147,7 +147,7 @@ export function BidVisual() {
           How many <span className="text-uv-soft">can you name?</span>
         </p>
         <div className="mt-3 flex items-center gap-2 rounded-xl border border-line-strong bg-night px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.25em] text-muted-foreground">
-          <Lock className="size-3" /> Topic sealed
+          Topic · <span className="text-volt">Fruits</span>
         </div>
         <div className="mt-auto flex items-center gap-4">
           <span className={cn("grid size-10 place-items-center rounded-xl border border-line-strong bg-deck", locked && "opacity-30")}>
@@ -176,7 +176,7 @@ export function BidVisual() {
   );
 }
 
-/* 4 — The reveal */
+/* 4 — Bids lock, clock starts */
 export function RevealVisual() {
   const { ref, i } = useLoop(6, 800);
   const show = i >= 1;
@@ -204,7 +204,7 @@ export function RevealVisual() {
             </motion.p>
           ) : (
             <motion.p key="q" exit={{ opacity: 0 }} className="relative font-mono text-4xl font-bold tracking-[0.3em] text-faint">
-              ??????
+              Bids in…
             </motion.p>
           )}
         </AnimatePresence>

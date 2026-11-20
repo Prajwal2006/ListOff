@@ -225,6 +225,12 @@ const COUNTRIES: CountryRow[] = COUNTRY_TABLE.trim()
     };
   });
 
+/** Countries (with aliases) whose canonical name starts with the given letter. */
+export const countriesStartingWith = (letter: string) =>
+  COUNTRIES.filter((c) => c.name.normalize("NFKD").toUpperCase().startsWith(letter))
+    .map((c) => c.name)
+    .join("|");
+
 const countryList = (pred: (c: CountryRow) => boolean) =>
   COUNTRIES.filter(pred)
     .map((c) => c.name)

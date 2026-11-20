@@ -2,14 +2,16 @@ import { allCategories } from "@/data/seed";
 
 /** Static knowledge-base headline numbers, computed from the seed data at build time. */
 export function LandingStats() {
-  const topics = allCategories.reduce((n, c) => n + c.topics.length, 0);
-  const answers = allCategories.reduce(
+  // Only topics that are dealt in games (open-ended ones are retired).
+  const playable = allCategories.map((c) => ({ ...c, topics: c.topics.filter((t) => t.active !== false) }));
+  const topics = playable.reduce((n, c) => n + c.topics.length, 0);
+  const answers = playable.reduce(
     (n, c) => n + c.topics.reduce((m, t) => m + t.answers.split(/\n|\|/).filter((s) => s.trim()).length, 0),
     0,
   );
-  const sample = allCategories.flatMap((c) => c.topics.slice(0, 2).map((t) => t.name)).slice(0, 28);
+  const sample = playable.filter((c) => c.topics.length).flatMap((c) => c.topics.slice(0, 2).map((t) => t.name)).slice(0, 28);
   const stats = [
-    { n: allCategories.length, label: "categories" },
+    { n: playable.filter((c) => c.topics.length).length, label: "categories" },
     { n: topics, label: "topics" },
     { n: Math.floor(answers / 1000) * 1000, label: "answers", plus: true },
   ];

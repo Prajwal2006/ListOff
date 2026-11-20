@@ -57,7 +57,7 @@ export function DeveloperStory() {
             pressure.
           </p>
           <p className="leading-relaxed text-muted-foreground">
-            So I built ListOff. You bid on yourself before you see the topic, then race twenty seconds to back it up.
+            So I built ListOff. You see the topic, bid on yourself, then race the clock to back it up.
             No accounts, no app to download: just one link, a room full of friends, and a healthy amount of trash
             talk. Every answer is checked against a hand-built list of over 30,000, so the only arguments left are
             about who bid too high.
@@ -102,8 +102,8 @@ export function DeveloperStory() {
             Dreamed up by <span className="text-uv-glow">{IDEA_BY.name}</span>
           </h3>
           <p className="text-lg leading-relaxed text-muted-foreground">
-            {IDEA_BY.firstName} is my friend and the one who came up with the idea for this game: bet on yourself
-            before you know the topic, then try to back it up against the clock. I just turned it into something you
+            {IDEA_BY.firstName} is my friend and the one who came up with the idea for this game: see the topic, bet
+            on yourself, then try to back it up against the clock. I just turned it into something you
             can play.
           </p>
         </div>

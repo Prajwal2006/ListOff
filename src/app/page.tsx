@@ -8,18 +8,18 @@ import { LandingStats } from "@/components/landing/landing-stats";
 
 const STEPS = [
   {
-    title: "Bid blind",
-    body: "Before anyone sees the topic, everyone locks in how many answers they think they can name.",
+    title: "See the topic",
+    body: "The topic drops for the whole room at once. Fruits? Capitals? Pixar films? Everyone sees it together.",
     tone: "text-uv-soft",
   },
   {
-    title: "The reveal",
-    body: "The topic drops for the whole room at once. Fruits? Capitals? Pixar films? You find out together.",
+    title: "Place your bid",
+    body: "Now bet on yourself: how many can you name? Bids stay secret until everyone has locked in.",
     tone: "text-cyan",
   },
   {
     title: "Race the clock",
-    body: "Twenty seconds. Type, hit Enter, repeat. Each answer is checked against a 30,000-answer knowledge base.",
+    body: "Twenty seconds. Type, hit Enter, repeat. Typos are autocorrected, every answer is checked against a hand-built list.",
     tone: "text-volt",
   },
 ];
@@ -54,8 +54,8 @@ export default function Home() {
             can you <span className="text-volt-glow">name?</span>
           </h1>
           <p className="mt-6 max-w-lg text-lg leading-relaxed text-muted-foreground">
-            Bid on yourself before you see the topic. Hit your number in 20 seconds and you bank it. Fall one short
-            and you get nothing. Overconfidence is the whole game.
+            See the topic, bet on how many you can name, then back it up against the clock. Hit your number and every
+            answer pays double. Fall one short and you get nothing. Overconfidence is the whole game.
           </p>
 
           <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
@@ -94,14 +94,14 @@ export default function Home() {
           <div>
             <h3 className="font-display text-3xl font-extrabold uppercase">The only rule that matters</h3>
             <p className="mt-2 max-w-2xl leading-relaxed text-muted-foreground">
-              Meet your bid and you score exactly your bid. Bid 5, name 6 fruits: <b className="text-volt">5 points</b>. Bid
-              7, name 6: <b className="text-hot">zero</b>. Duplicates and wrong answers don&apos;t count, so a bold bid pays
-              — until it doesn&apos;t.
+              Hit your bid and every answer up to it scores <b className="text-volt">2 points</b>, plus 1 for each extra. Bid 5,
+              name 6 fruits: <b className="text-volt">11 points</b>. Bid 7, name 6: <b className="text-hot">zero</b>.
+              Duplicates and wrong answers don&apos;t count, so a bold bid pays — until it doesn&apos;t.
             </p>
           </div>
           <div className="flex items-center gap-3 font-mono text-sm">
             <div className="rounded-xl border border-volt/40 bg-volt/10 px-4 py-3 text-volt">
-              bid 5 · got 6 → <b>+5</b>
+              bid 5 · got 6 → <b>+11</b>
             </div>
             <div className="rounded-xl border border-hot/40 bg-hot/10 px-4 py-3 text-hot">
               bid 7 · got 6 → <b>0</b>

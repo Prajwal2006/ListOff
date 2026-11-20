@@ -50,8 +50,8 @@ export function ScoringPlayground() {
         <p className="max-w-md text-center text-sm text-muted-foreground">
           {hit
             ? got > bid
-              ? `You named ${got - bid} more than you needed — extras don't earn anything. You score exactly your bid.`
-              : "Exactly on the money. You score your bid."
+              ? `${bid} × 2 for hitting your bid, plus ${got - bid} extra × 1.`
+              : `Exactly on the money: ${bid} × 2.`
             : got === 0
               ? "Nothing named, nothing scored."
               : `${bid - got} short of your bid. Close doesn't count — that's zero.`}

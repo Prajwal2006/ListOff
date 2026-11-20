@@ -50,7 +50,7 @@ export function RevealView({
         transition={{ delay: 0.25, duration: 0.6 }}
         className="mt-8 text-sm font-bold uppercase text-cyan sm:text-base"
       >
-        Round {roundNumber} · name as many
+        Bids are in · round {roundNumber} · name as many
       </motion.p>
       <motion.h1
         initial={{ opacity: 0, scale: 2.6, filter: "blur(18px)" }}

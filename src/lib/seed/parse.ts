@@ -27,9 +27,21 @@ export function topicSlug(t: TopicSeed): string {
   return t.slug ?? slugify(t.name);
 }
 
+/** Topic names that start with a proper noun keep their capital in the generated prompt. */
+const PROPER_STARTS = new Set(
+  ("African Asian Australian Beatles Bollywood Brazilian British Canadian Caribbean Chinese Christmas Disney " +
+    "DreamWorks Egyptian English European French German Greek Harry Hindu Indian Italian James Japanese K-pop " +
+    "Latin Lord Marvel Mexican Middle Mughal Norse Pixar Pokémon Roald Roman Shakespeare Southeast Star Studio " +
+    "Taylor Thai").split(" "),
+);
+
 export function topicPrompt(t: TopicSeed): string {
   if (t.prompt) return t.prompt;
-  const n = t.name.charAt(0).toLowerCase() + t.name.slice(1);
+  const first = t.name.split(" ")[0];
+  if (first === "The") return `Name as many of ${t.name.charAt(0).toLowerCase() + t.name.slice(1)} as you can`;
+  // Keep proper nouns and acronyms as written: "NATO member countries", "Indian state capitals".
+  const keep = /^[^a-z]{2}/.test(first) || PROPER_STARTS.has(first);
+  const n = keep ? t.name : t.name.charAt(0).toLowerCase() + t.name.slice(1);
   return `Name as many ${n} as you can`;
 }
 
@@ -39,6 +51,7 @@ export interface PreparedTopic {
   prompt: string;
   description: string;
   difficulty: TopicSeed["difficulty"];
+  active: boolean;
   answers: { canonical: string; normalized: string; aliases: { alias: string; normalized: string }[] }[];
   warnings: string[];
 }
@@ -83,6 +96,7 @@ export function prepareTopic(t: TopicSeed): PreparedTopic {
     prompt: topicPrompt(t),
     description: t.description ?? "",
     difficulty: t.difficulty,
+    active: t.active ?? true,
     answers,
     warnings,
   };

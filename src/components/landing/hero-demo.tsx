@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, X } from "lucide-react";
 import { Tally } from "@/components/game/tally";
+import { calculatePoints } from "@/lib/scoring";
 
 const SCRIPT = [
   { topic: "Fruits", bid: 5, answers: ["Mango", "Kiwi", "Car", "Lychee", "Papaya", "Fig", "Guava"] },
@@ -61,7 +62,7 @@ export function HeroDemo() {
               className="flex flex-col items-center justify-center gap-3 pt-6 text-center"
             >
               <p className="font-display text-2xl font-extrabold uppercase text-muted-foreground">How many can you name?</p>
-              <p className="text-sm text-faint">Topic: <span className="rounded bg-deck px-2 py-0.5 font-mono text-muted-foreground">??????</span></p>
+              <p className="text-sm text-faint">Topic: <span className="rounded bg-deck px-2 py-0.5 font-semibold text-volt">{s.topic}</span></p>
               <motion.div
                 initial={{ scale: 0.6, rotate: -8 }}
                 animate={{ scale: 1, rotate: 0 }}
@@ -130,7 +131,7 @@ export function HeroDemo() {
                     transition={{ type: "spring", stiffness: 300, damping: 15 }}
                     className="absolute inset-x-0 bottom-0 mx-auto w-fit rounded-2xl bg-volt px-6 py-3 text-center font-display text-3xl font-black uppercase text-[#0a0d00] shadow-[0_6px_0_var(--volt-deep),0_0_60px_rgb(200_255_46/0.5)]"
                   >
-                    Bid met · +{s.bid}
+                    Bid met · +{calculatePoints(valid, s.bid)}
                   </motion.div>
                 )}
               </AnimatePresence>

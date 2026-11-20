@@ -47,20 +47,76 @@ describe("TopicIndex matching", () => {
   });
 
   it("rejects answers from outside the topic", () => {
-    for (const s of ["Car", "Laptop", "Football", "Carrot", "appl", "bananaz", ""]) {
+    for (const s of ["Car", "Laptop", "Football", "Carrot", ""]) {
       expect(fruits.match(s).answerId).toBeNull();
     }
   });
 
-  it("does not fuzzy-match misspellings", () => {
-    expect(fruits.match("Mangoe").answerId).toBeNull();
-    expect(fruits.match("Oragne").answerId).toBeNull();
+  it("autocorrects typos: missing, extra, wrong and swapped letters", () => {
+    expect(fruits.match("Bananna")).toMatchObject({ canonical: "Banana", method: "typo" });
+    expect(fruits.match("Mangoe")).toMatchObject({ canonical: "Mango", method: "typo" });
+    expect(fruits.match("Oragne")).toMatchObject({ canonical: "Orange", method: "typo" });
+    expect(fruits.match("strawbery").canonical).toBe("Strawberry");
+    expect(fruits.match("watermellon").canonical).toBe("Watermelon");
+  });
+
+  it("can turn autocorrect off", () => {
+    expect(fruits.match("Bananna", { autocorrect: false }).answerId).toBeNull();
+  });
+
+  it("recognizes sound-alike spellings", () => {
+    const countries = indexFrom("Philippines|Kyrgyzstan|Switzerland|Czechia=Czech Republic|Mexico");
+    expect(countries.match("filipines").canonical).toBe("Philippines");
+    expect(countries.match("Kirgistan").canonical).toBe("Kyrgyzstan");
+    expect(countries.match("Swizerland").canonical).toBe("Switzerland");
+  });
+
+  it("accepts a distinctive partial name only when it fits one answer", () => {
+    expect(fruits.match("brussels").canonical).toBe("Brussels sprout");
+    const states = indexFrom("North Dakota|South Dakota|New Mexico|North Carolina|South Carolina");
+    expect(states.match("Dakota").answerId).toBeNull();
+    expect(states.match("Carolina").answerId).toBeNull();
+    // Dropping a meaningful word changes the answer: Mexico is not New Mexico.
+    expect(states.match("Mexico").answerId).toBeNull();
+    expect(states.match("South Korea").answerId).toBeNull();
+  });
+
+  it("never corrects one real answer into a different one", () => {
+    const idx = indexFrom("Slovakia|Ireland|Niger");
+    const known = new Set(["slovenia", "iceland", "nigeria"]);
+    const isKnownAnswer = (k: string) => known.has(k);
+    expect(idx.match("Slovenia", { isKnownAnswer }).answerId).toBeNull();
+    expect(idx.match("Iceland", { isKnownAnswer }).answerId).toBeNull();
+    expect(idx.match("Nigeria", { isKnownAnswer }).answerId).toBeNull();
+    expect(idx.match("Slovakai", { isKnownAnswer }).canonical).toBe("Slovakia");
+  });
+
+  it("never guesses when a typo is equally close to two answers", () => {
+    const idx = indexFrom("Austria|Australia|Iran|Iraq");
+    expect(idx.match("Austrailia").canonical).toBe("Australia");
+    expect(idx.match("Irad").answerId).toBeNull(); // one letter from both Iran and Iraq
+    expect(idx.match("Irac").canonical).toBe("Iraq"); // sounds like Iraq
+    const tied = indexFrom("Pears|Peach");
+    expect(tied.match("Peacs").answerId).toBeNull();
+  });
+
+  it("does not accept short or unrelated words", () => {
+    for (const s of ["Car", "Laptop", "Football", "Pen", "Apples and pears"]) {
+      expect(fruits.match(s).answerId).toBeNull();
+    }
+  });
+
+  it("flags an autocorrected repeat as a duplicate", () => {
+    const res = validateSubmissions(fruits, ["Banana", "Bananna"]);
+    expect(res[1]).toMatchObject({ canonicalAnswer: "Banana", isDuplicate: true });
   });
 
   it("never matches an ambiguous loose key", () => {
     const idx = indexFrom("Ice cream|Icecreams");
-    // Both answers loosen to "icecream", so that loose key is ambiguous and must not match...
-    expect(idx.match("icecream").answerId).toBeNull();
+    // Both answers loosen to "icecream", so that loose key is ambiguous and is never used...
+    expect(idx.match("icecream", { autocorrect: false }).answerId).toBeNull();
+    // ...but with autocorrect on, the strictly closest spelling still wins.
+    expect(idx.match("icecream").canonical).toBe("Ice cream");
     // ...while exact spellings still resolve.
     expect(idx.match("ice cream").canonical).toBe("Ice cream");
     expect(idx.match("ICECREAMS").canonical).toBe("Icecreams");

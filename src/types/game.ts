@@ -41,7 +41,7 @@ export interface RoundView {
   answeringDeadline: number | null;
   predictionsIn: number;
   eligible: number;
-  /** Only present once the round has been revealed. */
+  /** The round topic, shown from the start of bidding. */
   topic: PublicTopic | null;
 }
 
@@ -148,6 +148,8 @@ export interface AnswerSubmitResponse {
   canonicalAnswer: string | null;
   isValid: boolean;
   isDuplicate: boolean;
+  /** True when the answer was recognized through spelling autocorrect. */
+  corrected: boolean;
   validCount: number;
 }
 

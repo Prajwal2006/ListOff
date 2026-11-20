@@ -2,12 +2,13 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useAnimationControls } from "framer-motion";
-import { Check, CircleSlash, CornerDownLeft, Copy, Loader2, Timer, X } from "lucide-react";
+import { Check, CircleSlash, CornerDownLeft, Copy, Loader2, Sparkles, Timer, X } from "lucide-react";
 import { CountdownRing, TimerBar } from "@/components/game/countdown-ring";
 import { Confetti } from "@/components/game/confetti";
 import { Tally } from "@/components/game/tally";
 import { api, ApiError } from "@/lib/client/api";
 import { useCountdown } from "@/lib/realtime/use-countdown";
+import { calculatePoints } from "@/lib/scoring";
 import { MAX_ANSWER_LENGTH, normalizeAnswer } from "@/lib/validation/normalize";
 import { cn } from "@/lib/utils";
 import type { PublicTopic, SubmittedAnswerView } from "@/types/game";
@@ -19,6 +20,8 @@ interface Entry {
   normalized: string;
   status: Status;
   canonical: string | null;
+  /** Recognized via spelling autocorrect. */
+  corrected?: boolean;
 }
 
 function fromServer(a: SubmittedAnswerView): Entry {
@@ -87,6 +90,7 @@ export function AnsweringView({
       const r = await api.answer(code, token, entry.text);
       update(entry.key, {
         canonical: r.canonicalAnswer,
+        corrected: r.corrected,
         status: r.isValid ? (r.isDuplicate ? "duplicate" : "valid") : r.isDuplicate ? "duplicate" : "invalid",
       });
     } catch (e) {
@@ -162,7 +166,7 @@ export function AnsweringView({
                 animate={{ scale: 1, rotate: -3, opacity: 1 }}
                 className="rounded-xl bg-volt px-3 py-1.5 font-display text-2xl font-black uppercase text-[#0a0d00]"
               >
-                Bid met +{bid}
+                Bid met · +{calculatePoints(valid, bid)}
               </motion.p>
             ) : (
               <p className="font-display text-2xl font-extrabold uppercase text-muted-foreground">
@@ -215,7 +219,7 @@ export function AnsweringView({
         <span>
           {entries.length} entered · {valid} accepted {pending && <Loader2 className="ml-1 inline size-3 animate-spin" />}
         </span>
-        <span className="hidden sm:inline">Enter to add · duplicates are caught instantly</span>
+        <span className="hidden sm:inline">Enter to add · typos are autocorrected · duplicates caught instantly</span>
       </div>
 
       {/* Entries */}
@@ -293,7 +297,11 @@ function EntryChip({ entry, flash }: { entry: Entry; flash: boolean }) {
     >
       <Icon className={cn("size-3.5 shrink-0", s === "pending" && "animate-spin")} strokeWidth={2.6} />
       <span className={cn("truncate", (s === "invalid" || s === "late") && "line-through decoration-2")}>{entry.text}</span>
-      {s === "valid" && showCanonical && <span className="truncate text-xs font-normal opacity-75">→ {entry.canonical}</span>}
+      {s === "valid" && showCanonical && (
+        <span className="flex items-center gap-0.5 truncate text-xs font-normal opacity-80">
+          {entry.corrected && <Sparkles className="size-3 shrink-0" aria-label="autocorrected" />}→ {entry.canonical}
+        </span>
+      )}
       {s === "duplicate" && <span className="text-xs font-normal opacity-80">dupe</span>}
     </motion.li>
   );
