@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useAnimationControls } from "framer-motion";
 import { Check, CircleSlash, CornerDownLeft, Copy, Loader2, Sparkles, Timer, X } from "lucide-react";
+import { AppealButton } from "@/components/game/appeal-button";
 import { CountdownRing, TimerBar } from "@/components/game/countdown-ring";
 import { Confetti } from "@/components/game/confetti";
 import { Tally } from "@/components/game/tally";
@@ -226,7 +227,7 @@ export function AnsweringView({
       <ul className="mt-4 flex flex-wrap gap-2" aria-live="polite">
         <AnimatePresence initial={false}>
           {entries.map((e) => (
-            <EntryChip key={e.key} entry={e} flash={flashKey === e.key} />
+            <EntryChip key={e.key} entry={e} flash={flashKey === e.key} topicId={topic.id} />
           ))}
         </AnimatePresence>
       </ul>
@@ -250,7 +251,7 @@ export function AnsweringView({
   );
 }
 
-function EntryChip({ entry, flash }: { entry: Entry; flash: boolean }) {
+function EntryChip({ entry, flash, topicId }: { entry: Entry; flash: boolean; topicId: number }) {
   const s = entry.status;
   const tone = {
     pending: "border-line-strong bg-deck/70 text-muted-foreground",
@@ -303,6 +304,7 @@ function EntryChip({ entry, flash }: { entry: Entry; flash: boolean }) {
         </span>
       )}
       {s === "duplicate" && <span className="text-xs font-normal opacity-80">dupe</span>}
+      {s === "invalid" && <AppealButton topicId={topicId} text={entry.text} className="-mr-1.5" />}
     </motion.li>
   );
 }
