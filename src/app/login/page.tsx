@@ -34,10 +34,18 @@ function LoginForm() {
       return;
     }
     setBusy(true);
-    const res =
-      mode === "signup"
-        ? await authClient.signUp.email({ email: email.trim(), password, name: name.trim() })
-        : await authClient.signIn.email({ email: email.trim(), password });
+    let res;
+    try {
+      res =
+        mode === "signup"
+          ? await authClient.signUp.email({ email: email.trim(), password, name: name.trim() })
+          : await authClient.signIn.email({ email: email.trim(), password });
+    } catch {
+      // A server or network failure used to leave the button spinning forever.
+      setBusy(false);
+      toast.error("We couldn't reach the sign-in service. Please try again in a moment.");
+      return;
+    }
     if (res.error) {
       setBusy(false);
       toast.error(res.error.message || (mode === "signup" ? "Couldn't create your account." : "Wrong email or password."));
