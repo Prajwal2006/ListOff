@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, Copy, CornerDownLeft, Lock, SkipForward, Sparkles, Trophy, X } from "lucide-react";
 import { toast } from "sonner";
+import { AppealButton } from "@/components/game/appeal-button";
 import { ArcadeButton } from "@/components/game/arcade-button";
 import { Confetti } from "@/components/game/confetti";
 import { CountdownRing } from "@/components/game/countdown-ring";
@@ -267,6 +268,7 @@ function ResultStep({ round, onNext }: { round: SoloRoundView; onNext: () => voi
   const [all, setAll] = useState(false);
   const key = round.answerKey ?? [];
   const shown = all ? key : key.slice(0, 48);
+  const rejected = [...new Map(round.answers.filter((a) => !a.isValid && !a.isDuplicate).map((a) => [a.text.toLowerCase(), a])).values()];
   return (
     <div className="flex flex-col items-center text-center">
       {hit && <Confetti />}
@@ -293,6 +295,23 @@ function ResultStep({ round, onNext }: { round: SoloRoundView; onNext: () => voi
       <ArcadeButton size="xl" className="mt-6 w-full max-w-sm" onClick={onNext}>
         Next round
       </ArcadeButton>
+
+      {rejected.length > 0 && (
+        <div className="panel mt-8 w-full p-5 text-left">
+          <h3 className="font-display text-2xl font-extrabold uppercase">Think we got one wrong?</h3>
+          <p className="mb-3 text-sm text-muted-foreground">
+            If a rejected answer really belongs in {round.topic.name}, appeal it. We&apos;ll review it and may add it.
+          </p>
+          <ul className="flex flex-wrap gap-2">
+            {rejected.map((a) => (
+              <li key={a.text} className="flex items-center gap-1.5 rounded-full border border-hot/40 bg-hot/10 py-1 pl-3 pr-1.5 text-sm text-hot">
+                <span className="line-through">{a.text}</span>
+                <AppealButton topicId={round.topic.id} text={a.text} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {key.length > 0 && (
         <div className="panel mt-8 w-full p-5 text-left">

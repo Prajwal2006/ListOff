@@ -123,6 +123,11 @@ export default function Home() {
       <footer className="space-y-1 border-t border-line py-8 text-center text-sm text-faint">
         <p>ListOff · answers checked against a curated database — no AI guessing, no arguments.</p>
         <BuiltBy />
+        <p>
+          <Link href="/privacy" className="hover:text-text hover:underline">
+            Privacy policy
+          </Link>
+        </p>
       </footer>
     </main>
   );

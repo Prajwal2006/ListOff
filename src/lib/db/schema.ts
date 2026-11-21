@@ -379,3 +379,50 @@ export const soloAnswers = pgTable(
 export type University = typeof universities.$inferSelect;
 export type PlayerProfile = typeof playerProfiles.$inferSelect;
 export type SoloRound = typeof soloRounds.$inferSelect;
+
+/* ─────────────────────── Analytics & appeals ──────────────────────── */
+
+/**
+ * First-party, anonymous usage events (page views and game milestones). `anonId` is a random id the
+ * browser generates itself; no IP address, user agent string or account id is stored.
+ */
+export const analyticsEvents = pgTable(
+  "analytics_events",
+  {
+    id: serial("id").primaryKey(),
+    name: text("name").notNull(), // "page_view", "solo_round_started", …
+    path: text("path"),
+    anonId: text("anon_id"),
+    referrer: text("referrer"), // hostname only
+    device: text("device"), // "mobile" | "tablet" | "desktop"
+    createdAt: ts("created_at").notNull().defaultNow(),
+  },
+  (t) => [index("analytics_events_created_idx").on(t.createdAt), index("analytics_events_name_idx").on(t.name, t.createdAt)],
+);
+
+export const appealStatusEnum = pgEnum("appeal_status", ["PENDING", "APPROVED", "REJECTED"]);
+
+/** A player's "this should have counted" report. One row per topic + normalized text; repeats bump `reportCount`. */
+export const answerAppeals = pgTable(
+  "answer_appeals",
+  {
+    id: serial("id").primaryKey(),
+    topicId: integer("topic_id")
+      .notNull()
+      .references(() => topics.id, { onDelete: "cascade" }),
+    submittedText: text("submitted_text").notNull(),
+    normalizedText: text("normalized_text").notNull(),
+    note: text("note"),
+    status: appealStatusEnum("status").notNull().default("PENDING"),
+    reportCount: integer("report_count").notNull().default(1),
+    createdAt: ts("created_at").notNull().defaultNow(),
+    lastReportedAt: ts("last_reported_at").notNull().defaultNow(),
+    resolvedAt: ts("resolved_at"),
+  },
+  (t) => [
+    uniqueIndex("answer_appeals_topic_text_idx").on(t.topicId, t.normalizedText),
+    index("answer_appeals_status_idx").on(t.status, t.lastReportedAt),
+  ],
+);
+
+export type AnswerAppeal = typeof answerAppeals.$inferSelect;

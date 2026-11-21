@@ -6,11 +6,20 @@ import { safeEqualHex, hashToken } from "@/lib/auth/tokens";
 import { invalidateTopicIndex } from "./answer-validation.service";
 import { invalidateTopicCandidates } from "./round.service";
 import { fail } from "./errors";
+import { clientIp, limit } from "./http";
+
+/** Password for /admin. Set ADMIN_SECRET in the environment to override this built-in default. */
+const DEFAULT_ADMIN_PASSWORD = "BabluAdmin123#";
 
 export function assertAdmin(secret: string | null) {
-  const expected = process.env.ADMIN_SECRET;
-  if (!expected) fail("FORBIDDEN", "The admin area is disabled. Set ADMIN_SECRET to enable it.");
-  if (!secret || !safeEqualHex(hashToken(secret), hashToken(expected!))) fail("UNAUTHORIZED", "Wrong admin secret.");
+  const expected = process.env.ADMIN_SECRET || DEFAULT_ADMIN_PASSWORD;
+  if (!secret || !safeEqualHex(hashToken(secret), hashToken(expected))) fail("UNAUTHORIZED", "Wrong password.");
+}
+
+/** Checks the admin header on a request, with a per-IP brute-force limit. */
+export function requireAdmin(req: Request) {
+  limit(`admin:${clientIp(req)}`, 40, 60_000);
+  assertAdmin(req.headers.get("x-admin-secret"));
 }
 
 export async function listTopics(db: Db, q: string) {

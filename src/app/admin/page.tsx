@@ -1,327 +1,165 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { KeyRound, Plus, Search } from "lucide-react";
+import { useEffect, useState } from "react";
+import { BarChart3, Flag, KeyRound, LibraryBig, LogOut } from "lucide-react";
 import { toast } from "sonner";
+import { AnalyticsPanel } from "@/components/admin/analytics-panel";
+import { AppealsPanel } from "@/components/admin/appeals-panel";
+import { adminFetch } from "@/components/admin/admin-fetch";
+import { KnowledgeBase } from "@/components/admin/knowledge-base";
 import { Backdrop } from "@/components/brand/backdrop";
 import { Logo } from "@/components/brand/logo";
 import { ArcadeButton } from "@/components/game/arcade-button";
-import { Switch } from "@/components/ui/switch";
-import { api as gameApi } from "@/lib/client/api";
-import { useClientValue } from "@/lib/client/use-client-value";
 import { cn } from "@/lib/utils";
 
-type TopicRow = {
-  id: number;
-  name: string;
-  slug: string;
-  prompt: string;
-  difficulty: string;
-  isActive: boolean;
-  category: string;
-  answerCount: number;
-};
-type AnswerRow = { id: number; canonical: string; isActive: boolean; aliases: string[] };
-
+type Tab = "analytics" | "appeals" | "topics";
 const KEY = "listoff:admin";
 
-async function adminFetch<T>(secret: string, path: string, init: RequestInit = {}): Promise<T> {
-  const res = await fetch(path, {
-    ...init,
-    headers: { "Content-Type": "application/json", "x-admin-secret": secret },
-    cache: "no-store",
-  });
-  const body = await res.json().catch(() => null);
-  if (!res.ok) throw new Error(body?.error?.message ?? "Request failed");
-  return body as T;
+function readSaved(): string | null {
+  try {
+    return sessionStorage.getItem(KEY);
+  } catch {
+    return null;
+  }
 }
 
 export default function AdminPage() {
-  const saved = useClientValue(() => {
-    try {
-      return sessionStorage.getItem(KEY);
-    } catch {
-      return null;
-    }
-  }, null);
-  const [typedSecret, setSecret] = useState<string | null>(null);
-  const secret = typedSecret ?? saved ?? "";
-  const [authed, setAuthed] = useState(false);
-  const [q, setQ] = useState("");
-  const [topics, setTopics] = useState<TopicRow[]>([]);
-  const [selected, setSelected] = useState<TopicRow | null>(null);
+  const [secret, setSecret] = useState<string | null>(null); // set once the server accepts it
+  const [checking, setChecking] = useState(true);
 
-  const load = useCallback(
-    async (s = secret, query = q) => {
-      try {
-        const r = await adminFetch<{ topics: TopicRow[] }>(s, `/api/admin/topics?q=${encodeURIComponent(query)}`);
-        setTopics(r.topics);
-        setAuthed(true);
-        try {
-          sessionStorage.setItem(KEY, s);
-        } catch {}
-      } catch (e) {
-        setAuthed(false);
-        toast.error((e as Error).message);
-      }
-    },
-    [secret, q],
-  );
-
-  // Re-unlock automatically with a secret saved earlier in this tab.
+  // Re-unlock with a password entered earlier in this tab. Verified by the server, never trusted locally.
   useEffect(() => {
-    if (!saved) return;
-    let live = true;
-    adminFetch<{ topics: TopicRow[] }>(saved, "/api/admin/topics?q=")
-      .then((r) => {
-        if (!live) return;
-        setTopics(r.topics);
-        setAuthed(true);
+    Promise.resolve(readSaved())
+      .then(async (saved) => {
+        if (!saved) return;
+        try {
+          await adminFetch(saved, "/api/admin/appeals");
+          setSecret(saved);
+        } catch {
+          try {
+            sessionStorage.removeItem(KEY);
+          } catch {}
+        }
       })
-      .catch(() => {});
-    return () => {
-      live = false;
-    };
-  }, [saved]);
+      .finally(() => setChecking(false));
+  }, []);
 
-  if (!authed) {
-    return (
-      <main className="grid min-h-dvh place-items-center px-4">
-        <Backdrop />
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            load();
-          }}
-          className="panel w-full max-w-sm space-y-4 p-6"
-        >
-          <Logo size="sm" />
-          <h1 className="font-display text-4xl font-black uppercase">Knowledge base</h1>
-          <p className="text-sm text-muted-foreground">Enter the admin secret configured in ADMIN_SECRET.</p>
-          <input
-            type="password"
-            value={secret}
-            onChange={(e) => setSecret(e.target.value)}
-            className="h-12 w-full rounded-xl border border-line-strong bg-ink/60 px-4 focus:border-uv focus:outline-none"
-            placeholder="Admin secret"
-            autoFocus
-          />
-          <ArcadeButton type="submit" size="md" className="w-full">
-            <KeyRound className="size-4" /> Unlock
-          </ArcadeButton>
-        </form>
-      </main>
-    );
-  }
-
+  if (checking) return <main className="grid min-h-dvh place-items-center text-muted-foreground">Loading…</main>;
+  if (!secret) return <Login onUnlock={setSecret} />;
   return (
-    <main className="relative min-h-dvh">
+    <Dashboard
+      secret={secret}
+      onLock={() => {
+        try {
+          sessionStorage.removeItem(KEY);
+        } catch {}
+        setSecret(null);
+      }}
+    />
+  );
+}
+
+function Login({ onUnlock }: { onUnlock: (s: string) => void }) {
+  const [pw, setPw] = useState("");
+  const [busy, setBusy] = useState(false);
+  return (
+    <main className="grid min-h-dvh place-items-center px-4">
       <Backdrop />
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-4 py-5 sm:px-6">
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault();
+          setBusy(true);
+          try {
+            await adminFetch(pw, "/api/admin/appeals");
+            try {
+              sessionStorage.setItem(KEY, pw);
+            } catch {}
+            onUnlock(pw);
+          } catch (err) {
+            toast.error((err as Error).message);
+            setBusy(false);
+          }
+        }}
+        className="panel w-full max-w-sm space-y-4 p-6"
+      >
         <Logo size="sm" />
-        <span className="text-sm text-muted-foreground">{topics.length} topics shown</span>
-      </header>
-      <div className="mx-auto grid max-w-6xl gap-6 px-4 pb-16 sm:px-6 lg:grid-cols-[1fr_1.2fr]">
-        <section className="space-y-4">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              load();
-            }}
-            className="flex gap-2"
-          >
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-faint" />
-              <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder="Search topics or categories"
-                className="h-11 w-full rounded-xl border border-line-strong bg-night pl-9 pr-3 focus:border-uv focus:outline-none"
-              />
-            </div>
-            <ArcadeButton size="md" variant="ghost" type="submit">
-              Search
-            </ArcadeButton>
-          </form>
-          <NewTopic secret={secret} onCreated={() => load()} />
-          <ul className="max-h-[70dvh] space-y-1 overflow-y-auto pr-1">
-            {topics.map((t) => (
-              <li key={t.id}>
-                <button
-                  onClick={() => setSelected(t)}
-                  className={cn(
-                    "flex w-full items-center gap-3 rounded-xl border px-3 py-2 text-left",
-                    selected?.id === t.id ? "border-uv bg-uv/10" : "border-line bg-night/60 hover:border-line-strong",
-                  )}
-                >
-                  <span className="min-w-0 flex-1">
-                    <span className={cn("block truncate font-semibold", !t.isActive && "text-faint line-through")}>{t.name}</span>
-                    <span className="text-xs text-faint">
-                      {t.category} · {t.difficulty}
-                    </span>
-                  </span>
-                  <span className="font-display text-lg font-black tabular text-muted-foreground">{t.answerCount}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </section>
-        <section>{selected ? <TopicEditor key={selected.id} topic={selected} secret={secret} onChanged={() => load()} /> : <p className="panel p-6 text-muted-foreground">Pick a topic to view and extend its answers.</p>}</section>
-      </div>
+        <h1 className="font-display text-4xl font-black uppercase">Admin</h1>
+        <p className="text-sm text-muted-foreground">Enter the admin password to continue.</p>
+        <input
+          type="password"
+          value={pw}
+          onChange={(e) => setPw(e.target.value)}
+          autoComplete="current-password"
+          className="h-12 w-full rounded-xl border border-line-strong bg-ink/60 px-4 focus:border-uv focus:outline-none"
+          placeholder="Password"
+          autoFocus
+        />
+        <ArcadeButton type="submit" size="md" className="w-full" loading={busy} disabled={!pw}>
+          <KeyRound className="size-4" /> Unlock
+        </ArcadeButton>
+      </form>
     </main>
   );
 }
 
-function NewTopic({ secret, onCreated }: { secret: string; onCreated: () => void }) {
-  const [open, setOpen] = useState(false);
-  const [cats, setCats] = useState<{ id: number; name: string }[]>([]);
-  const [form, setForm] = useState({ name: "", categoryId: "", difficulty: "medium", prompt: "", answers: "" });
+function Dashboard({ secret, onLock }: { secret: string; onLock: () => void }) {
+  const [tab, setTab] = useState<Tab>("analytics");
+  const [topicId, setTopicId] = useState<number | undefined>();
+  const [pending, setPending] = useState<number | null>(null);
+
+  const refreshPending = () =>
+    adminFetch<{ appeals: unknown[] }>(secret, "/api/admin/appeals?status=PENDING")
+      .then((r) => setPending(r.appeals.length))
+      .catch(() => {});
   useEffect(() => {
-    if (open && !cats.length) gameApi.categories().then((r) => setCats(r.categories));
-  }, [open, cats.length]);
-  if (!open)
-    return (
-      <button onClick={() => setOpen(true)} className="flex w-full items-center gap-2 rounded-xl border border-dashed border-volt/50 p-3 text-volt">
-        <Plus className="size-4" /> New topic
-      </button>
-    );
+    refreshPending();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const tabs: { key: Tab; label: string; icon: typeof BarChart3; badge?: number | null }[] = [
+    { key: "analytics", label: "Analytics", icon: BarChart3 },
+    { key: "appeals", label: "Appeals", icon: Flag, badge: pending },
+    { key: "topics", label: "Knowledge base", icon: LibraryBig },
+  ];
+
   return (
-    <form
-      className="panel space-y-3 p-4"
-      onSubmit={async (e) => {
-        e.preventDefault();
-        try {
-          const r = await adminFetch<{ result: { added: number } | null }>(secret, "/api/admin/topics", {
-            method: "POST",
-            body: JSON.stringify({ ...form, categoryId: Number(form.categoryId) }),
-          });
-          toast.success(`Topic created with ${r.result?.added ?? 0} answers`);
-          setOpen(false);
-          setForm({ name: "", categoryId: "", difficulty: "medium", prompt: "", answers: "" });
-          onCreated();
-        } catch (err) {
-          toast.error((err as Error).message);
-        }
-      }}
-    >
-      <input required placeholder="Topic name, e.g. Pasta shapes" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="h-11 w-full rounded-xl border border-line-strong bg-ink/60 px-3" />
-      <div className="flex gap-2">
-        <select required value={form.categoryId} onChange={(e) => setForm({ ...form, categoryId: e.target.value })} className="h-11 flex-1 rounded-xl border border-line-strong bg-ink/60 px-3">
-          <option value="">Category…</option>
-          {cats.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
+    <main className="relative min-h-dvh">
+      <Backdrop />
+      <header className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-5 sm:px-6">
+        <Logo size="sm" />
+        <nav className="flex gap-1 rounded-xl border border-line bg-night/70 p-1">
+          {tabs.map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className={cn(
+                "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold",
+                tab === t.key ? "bg-uv text-white" : "text-muted-foreground hover:text-text",
+              )}
+            >
+              <t.icon className="size-4" /> {t.label}
+              {!!t.badge && <span className="rounded-full bg-hot px-1.5 text-xs text-white">{t.badge}</span>}
+            </button>
           ))}
-        </select>
-        <select value={form.difficulty} onChange={(e) => setForm({ ...form, difficulty: e.target.value })} className="h-11 rounded-xl border border-line-strong bg-ink/60 px-3">
-          <option>easy</option>
-          <option>medium</option>
-          <option>hard</option>
-        </select>
-      </div>
-      <input placeholder="Reveal prompt (optional)" value={form.prompt} onChange={(e) => setForm({ ...form, prompt: e.target.value })} className="h-11 w-full rounded-xl border border-line-strong bg-ink/60 px-3" />
-      <textarea placeholder={"Answers: one per line or separated by |\nAdd aliases with =, e.g. Kiwi=Kiwifruit"} value={form.answers} onChange={(e) => setForm({ ...form, answers: e.target.value })} rows={6} className="w-full rounded-xl border border-line-strong bg-ink/60 p-3 font-mono text-sm" />
-      <div className="flex gap-2">
-        <ArcadeButton size="md" type="submit">
-          Create topic
-        </ArcadeButton>
-        <ArcadeButton size="md" variant="ghost" type="button" onClick={() => setOpen(false)}>
-          Cancel
-        </ArcadeButton>
-      </div>
-    </form>
-  );
-}
-
-function TopicEditor({ topic, secret, onChanged }: { topic: TopicRow; secret: string; onChanged: () => void }) {
-  const [answers, setAnswers] = useState<AnswerRow[] | null>(null);
-  const [add, setAdd] = useState("");
-  const [active, setActive] = useState(topic.isActive);
-  const reload = useCallback(
-    () => adminFetch<{ answers: AnswerRow[] }>(secret, `/api/admin/topics/${topic.id}`).then((r) => setAnswers(r.answers)),
-    [secret, topic.id],
-  );
-  useEffect(() => {
-    reload().catch((e) => toast.error(e.message));
-  }, [reload]);
-
-  return (
-    <div className="panel space-y-4 p-5">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-cyan">{topic.category}</p>
-          <h2 className="font-display text-4xl font-black uppercase leading-none">{topic.name}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">{topic.prompt}</p>
-        </div>
-        <label className="flex items-center gap-2 text-sm">
-          Active
-          <Switch
-            checked={active}
-            onCheckedChange={async (v) => {
-              setActive(v);
-              try {
-                await adminFetch(secret, `/api/admin/topics/${topic.id}`, { method: "PATCH", body: JSON.stringify({ isActive: v }) });
-                onChanged();
-              } catch (e) {
-                setActive(!v);
-                toast.error((e as Error).message);
-              }
+        </nav>
+        <button onClick={onLock} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-text">
+          <LogOut className="size-4" /> Lock
+        </button>
+      </header>
+      <div className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
+        {tab === "analytics" && <AnalyticsPanel secret={secret} />}
+        {tab === "appeals" && (
+          <AppealsPanel
+            secret={secret}
+            onChanged={refreshPending}
+            onOpenTopic={(id) => {
+              setTopicId(id);
+              setTab("topics");
             }}
           />
-        </label>
+        )}
+        {tab === "topics" && <KnowledgeBase key={topicId ?? "all"} secret={secret} initialTopicId={topicId} />}
       </div>
-      <form
-        className="space-y-2"
-        onSubmit={async (e) => {
-          e.preventDefault();
-          try {
-            const r = await adminFetch<{ added: number; total: number; warnings: string[] }>(secret, `/api/admin/topics/${topic.id}`, {
-              method: "POST",
-              body: JSON.stringify({ answers: add }),
-            });
-            toast.success(`Added ${r.added} new answers (${r.total} processed)`);
-            r.warnings.slice(0, 3).forEach((w) => toast.warning(w));
-            setAdd("");
-            reload();
-            onChanged();
-          } catch (err) {
-            toast.error((err as Error).message);
-          }
-        }}
-      >
-        <textarea value={add} onChange={(e) => setAdd(e.target.value)} rows={4} placeholder="Add answers: Mango | Kiwi=Kiwifruit | Lychee=Litchi" className="w-full rounded-xl border border-line-strong bg-ink/60 p-3 font-mono text-sm" />
-        <ArcadeButton size="md" type="submit" disabled={!add.trim()}>
-          Add answers
-        </ArcadeButton>
-      </form>
-      <div>
-        <p className="mb-2 text-sm text-muted-foreground">{answers?.length ?? "…"} answers — click one to disable or re-enable it</p>
-        <ul className="flex max-h-[50dvh] flex-wrap gap-1.5 overflow-y-auto">
-          {answers?.map((a) => (
-            <li key={a.id}>
-              <button
-                title={a.aliases.length ? `Also accepts: ${a.aliases.join(", ")}` : undefined}
-                onClick={async () => {
-                  try {
-                    await adminFetch(secret, `/api/admin/answers/${a.id}`, { method: "PATCH", body: JSON.stringify({ isActive: !a.isActive }) });
-                    setAnswers((list) => list?.map((x) => (x.id === a.id ? { ...x, isActive: !x.isActive } : x)) ?? null);
-                  } catch (e) {
-                    toast.error((e as Error).message);
-                  }
-                }}
-                className={cn(
-                  "rounded-lg border px-2 py-1 text-sm",
-                  a.isActive ? "border-line-strong bg-deck/60" : "border-line text-faint line-through",
-                )}
-              >
-                {a.canonical}
-                {a.aliases.length > 0 && <span className="ml-1 text-xs text-faint">+{a.aliases.length}</span>}
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
+    </main>
   );
 }

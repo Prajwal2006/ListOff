@@ -79,7 +79,7 @@ what to click — it never ships a broken app.
 
 ### After deploying (optional)
 
-- **Admin editor:** add an `ADMIN_SECRET` environment variable and redeploy to enable `/admin`.
+- **Admin editor:** `/admin` is password-protected (analytics dashboard, answer appeals and the knowledge-base editor). Set `ADMIN_SECRET` to your own password; if unset, the built-in default is used, so change it before going public.
 - **Solo mode + leaderboards (Neon Auth):** enable auth on your Neon branch (`neon neon-auth enable`),
   set `NEON_AUTH_BASE_URL` (printed by that command) and `NEON_AUTH_COOKIE_SECRET` (any random string of
   32+ characters, e.g. `openssl rand -base64 32`) in Vercel, and allow your site's origin with
@@ -114,7 +114,7 @@ local-development only.
 | --- | --- | --- |
 | `DATABASE_URL` | prod | Neon **pooled** connection string used by the app (set by the Neon integration; `POSTGRES_URL` also accepted) |
 | `DATABASE_URL_UNPOOLED` | recommended | Direct connection for migrations/seed (set by the Neon integration; `POSTGRES_URL_NON_POOLING` also accepted) |
-| `ADMIN_SECRET` | for `/admin` | Unlocks the knowledge-base editor; admin is disabled without it |
+| `ADMIN_SECRET` | recommended | Password for `/admin`; falls back to a built-in default if unset |
 | `NEON_AUTH_BASE_URL` | for solo mode | Neon Auth endpoint for this branch (from `neon neon-auth enable`) |
 | `NEON_AUTH_COOKIE_SECRET` | for solo mode | 32+ random characters used to sign session cookies |
 | `NEXT_PUBLIC_APP_URL` | optional | Public base URL for invite links |
@@ -216,7 +216,7 @@ master table so continent, EU, NATO, landlocked and island lists stay consistent
 (`npm run db:seed`) upserts on slugs and normalized keys, so it's idempotent and never clobbers
 answers added through `/admin`. See `src/data/seed/SOURCES.md` for sourcing notes.
 
-`/admin` (requires `ADMIN_SECRET`) lets you search topics, create topics, bulk-add answers and
+`/admin` (password from `ADMIN_SECRET`) shows usage analytics and player answer appeals, and lets you search topics, create topics, bulk-add answers and
 aliases in the same format, and disable bad answers or whole topics.
 
 ## Project layout

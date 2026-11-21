@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { Check, Copy, X } from "lucide-react";
+import { AppealButton } from "@/components/game/appeal-button";
 import { AnswerKey } from "@/components/game/answer-key";
 import { CategoryIcon } from "@/components/game/category-icon";
 import { Confetti } from "@/components/game/confetti";
@@ -72,14 +73,16 @@ export function ResultsView({ snapshot }: { snapshot: GameSnapshot }) {
                 </li>
               ))}
               {rejected.map((a) => (
-                <li key={a.id} className="flex items-center gap-1 rounded-full border border-hot/40 bg-hot/10 px-2.5 py-1 text-sm text-hot line-through">
-                  <X className="size-3.5" /> {a.text}
+                <li key={a.id} className="flex items-center gap-1.5 rounded-full border border-hot/40 bg-hot/10 py-1 pl-2.5 pr-1.5 text-sm text-hot">
+                  <X className="size-3.5" /> <span className="line-through">{a.text}</span>
+                  <AppealButton topicId={results.topic.id} text={a.text} />
                 </li>
               ))}
             </ul>
             {(dupes.length > 0 || rejected.length > 0) && (
               <p className="mt-3 text-xs text-faint">
                 {accepted.length} accepted · {dupes.length} duplicate · {rejected.length} not on the list
+                {rejected.length > 0 && " — think one of those is right? Tap Appeal and we'll review it."}
               </p>
             )}
           </section>
